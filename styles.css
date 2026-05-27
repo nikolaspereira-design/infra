@@ -29,8 +29,7 @@ body {
     background: transparent;
 }
 
-.header-image,
-.footer-image {
+.header-image {
     width: 100%;
     display: block;
     object-fit: cover;
@@ -38,12 +37,24 @@ body {
     border-radius: 18px;
 }
 
-.header-image {
-    max-height: 160px;
+.page-footer {
+    margin: 0 28px 28px;
 }
 
-.page-footer .footer-image {
-    max-height: 120px;
+.footer-content {
+    width: 100%;
+    min-height: 90px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    box-shadow: var(--shadow);
+    padding: 18px;
+    color: var(--primary-strong);
+    font-size: 0.98rem;
+    font-weight: 700;
 }
 
 .app-shell {
