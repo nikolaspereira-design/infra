@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>KTS Dimensionamento - Web</title>
+    <link rel="stylesheet" href="styles.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
+    <script src="script.js" defer></script>
+</head>
+<body>
+    <header class="topbar">
+        <img src="header_kts.jpeg" alt="KTS Cabeçalho" class="header-image" />
+        <div class="topbar-text">
+            <h1>KTS - Dimensão Web</h1>
+            <p>Tecnologia e Inovação para dimensionamento de infraestrutura</p>
+        </div>
+    </header>
+
+    <main class="app-shell">
+        <aside class="sidebar">
+            <div class="sidebar-card">
+                <h2>Selecione o tipo</h2>
+                <div id="category-list" class="category-list"></div>
+            </div>
+
+            <div class="sidebar-card compact">
+                <h2>Projeto</h2>
+                <p id="project-count">Nenhum trecho adicionado</p>
+                <button id="open-results-btn" class="button secondary">Ver lista consolidada</button>
+                <button id="reset-project-btn" class="button ghost">Limpar projeto</button>
+            </div>
+        </aside>
+
+        <section class="content-area">
+            <div class="panel" id="form-panel">
+                <div class="panel-header">
+                    <span id="selected-label">Bem-vindo ao sistema KTS</span>
+                </div>
+                <div class="panel-body" id="main-content">
+                    <div class="welcome-card" id="welcome-card">
+                        <img src="logo_kts.jpeg" alt="KTS" class="welcome-logo" />
+                        <p>Use o menu à esquerda para escolher a infraestrutura. Adicione trechos e gere a lista de materiais para exportar em CSV ou PDF.</p>
+                    </div>
+                    <form id="infra-form" class="infra-form hidden">
+                        <div class="field-group" id="fields-container"></div>
+                        <button type="button" id="add-item-btn" class="button primary">Adicionar trecho</button>
+                    </form>
+                </div>
+            </div>
+
+            <div class="panel hidden" id="results-panel">
+                <div class="panel-header">
+                    <span>Lista Consolidada de Materiais</span>
+                </div>
+                <div class="panel-body">
+                    <div class="actions-row">
+                        <button id="export-csv-btn" class="button success">Exportar CSV</button>
+                        <button id="export-pdf-btn" class="button success">Exportar PDF</button>
+                    </div>
+                    <div class="table-wrap">
+                        <table class="result-table">
+                            <thead>
+                                <tr>
+                                    <th>Descrição</th>
+                                    <th>Unid.</th>
+                                    <th>Qtd Final</th>
+                                </tr>
+                            </thead>
+                            <tbody id="result-table-body"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="page-footer">
+        <img src="footer_kts.jpeg" alt="Footer KTS" class="footer-image" />
+    </footer>
+</body>
+</html>
