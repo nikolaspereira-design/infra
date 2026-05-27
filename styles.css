@@ -24,13 +24,9 @@ body {
 }
 
 .topbar {
-    display: flex;
-    align-items: center;
-    gap: 18px;
     width: 100%;
-    padding: 16px 28px;
-    background: #15243e;
-    color: white;
+    padding: 0;
+    background: transparent;
 }
 
 .header-image,
@@ -38,17 +34,16 @@ body {
     width: 100%;
     display: block;
     object-fit: cover;
+    max-height: 160px;
+    border-radius: 18px;
 }
 
-.topbar-text h1 {
-    margin: 0;
-    font-size: 1.8rem;
+.header-image {
+    max-height: 160px;
 }
 
-.topbar-text p {
-    margin: 6px 0 0;
-    color: #dbe3f0;
-    font-size: 0.98rem;
+.page-footer .footer-image {
+    max-height: 120px;
 }
 
 .app-shell {
