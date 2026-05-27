@@ -38,23 +38,27 @@ body {
 }
 
 .page-footer {
-    margin: 0 28px 28px;
+    margin: 0 28px 18px;
 }
 
 .footer-content {
     width: 100%;
-    min-height: 90px;
+    min-height: 72px;
     display: flex;
     align-items: center;
     justify-content: center;
-    background: white;
-    border: 1px solid var(--border);
+    background: var(--primary);
     border-radius: 18px;
-    box-shadow: var(--shadow);
-    padding: 18px;
-    color: var(--primary-strong);
-    font-size: 0.98rem;
-    font-weight: 700;
+    padding: 14px 18px;
+    color: white;
+    font-size: 0.95rem;
+    font-weight: 600;
+    box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
+}
+
+.footer-content span {
+    max-width: 100%;
+    text-align: center;
 }
 
 .app-shell {
