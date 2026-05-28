@@ -34,6 +34,11 @@ const resultsPanel = document.getElementById('results-panel');
 const resultTableBody = document.getElementById('result-table-body');
 const exportCsvBtn = document.getElementById('export-csv-btn');
 const exportPdfBtn = document.getElementById('export-pdf-btn');
+const backToSelectionBtn = document.getElementById('back-to-selection-btn');
+const formDescription = document.getElementById('form-description');
+const sidebar = document.querySelector('.sidebar');
+const formPanel = document.getElementById('form-panel');
+const appShell = document.querySelector('.app-shell');
 
 function renderCatalog() {
     categoryList.innerHTML = '';
@@ -52,16 +57,40 @@ function selectItem(item) {
     selectedType = item.type;
     selectedLabel.textContent = item.label;
     renderFormFields(item.type);
-    welcomeCard.classList.add('hidden');
-    infraForm.classList.remove('hidden');
-    resultsPanel.classList.add('hidden');
-    updateActiveItem(item.type);
+    enterFormMode(item);
 }
 
 function updateActiveItem(type) {
     document.querySelectorAll('.category-card').forEach(card => {
         card.classList.toggle('active', card.dataset.itemType === type);
     });
+}
+
+function enterFormMode(item) {
+    sidebar.classList.add('collapsed');
+    appShell.classList.add('collapsed');
+    backToSelectionBtn.classList.remove('hidden');
+    formDescription.textContent = 'Preencha os dados do trecho selecionado e clique em Adicionar trecho. Depois, acesse a lista consolidada para exportar o relatório.';
+    welcomeCard.classList.add('hidden');
+    infraForm.classList.remove('hidden');
+    resultsPanel.classList.add('hidden');
+    updateActiveItem(item.type);
+    setTimeout(() => {
+        formPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 100);
+}
+
+function exitFormMode() {
+    selectedType = null;
+    selectedLabel.textContent = 'Bem-vindo ao sistema KTS';
+    formDescription.textContent = 'Use o menu à esquerda para escolher a infraestrutura. Adicione trechos e gere a lista de materiais para exportar em CSV ou PDF.';
+    sidebar.classList.remove('collapsed');
+    appShell.classList.remove('collapsed');
+    backToSelectionBtn.classList.add('hidden');
+    infraForm.classList.add('hidden');
+    welcomeCard.classList.remove('hidden');
+    resultsPanel.classList.add('hidden');
+    updateActiveItem(null);
 }
 
 function renderFormFields(type) {
@@ -143,7 +172,8 @@ function addItemToProject() {
     updateProjectCount();
     infraForm.reset();
     renderFormFields(selectedType);
-    alert('Trecho adicionado com sucesso!');
+    openResults();
+    alert('Trecho adicionado com sucesso! A lista consolidada foi atualizada.');
 }
 
 function updateProjectCount() {
@@ -164,6 +194,9 @@ function openResults() {
     }
     renderResults();
     resultsPanel.classList.remove('hidden');
+    setTimeout(() => {
+        resultsPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 100);
 }
 
 function renderResults() {
@@ -331,6 +364,7 @@ openResultsBtn.addEventListener('click', openResults);
 resetProjectBtn.addEventListener('click', resetProject);
 exportCsvBtn.addEventListener('click', downloadCsv);
 exportPdfBtn.addEventListener('click', downloadPdf);
+backToSelectionBtn.addEventListener('click', exitFormMode);
 
 renderCatalog();
 updateProjectCount();

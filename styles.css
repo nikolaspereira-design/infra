@@ -74,6 +74,14 @@ body {
     gap: 18px;
 }
 
+.app-shell.collapsed {
+    grid-template-columns: 1fr;
+}
+
+.sidebar.collapsed {
+    display: none;
+}
+
 .sidebar-card,
 .panel {
     background: var(--surface);
@@ -144,6 +152,20 @@ body {
     padding: 20px;
     border-bottom: 1px solid var(--border);
     background: var(--surface-alt);
+}
+
+.panel-header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+}
+
+.form-description {
+    margin: 12px 0 0;
+    color: var(--muted);
+    font-size: 0.95rem;
+    line-height: 1.5;
 }
 
 .panel-header span {
@@ -220,6 +242,26 @@ body {
 .button.secondary {
     background: #eef5ff;
     color: var(--primary-strong);
+}
+
+.hidden {
+    display: none;
+}
+
+@media (max-width: 960px) {
+    .app-shell {
+        grid-template-columns: 1fr;
+    }
+
+    .topbar {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .header-image,
+    .footer-image {
+        border-radius: 18px;
+    }
 }
 
 .button.success {
