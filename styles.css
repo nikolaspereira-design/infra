@@ -150,6 +150,15 @@ body {
     gap: 16px;
 }
 
+/* Updated Stack Order */
+#main-panel {
+    order: 2; /* Main panel comes second in visual stack */
+}
+
+#project-bar {
+    order: 1; /* Resume bar comes first in visual stack */
+}
+
 /* ===== PROJECT BAR ===== */
 .project-bar {
     background: var(--surface);
