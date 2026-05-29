@@ -618,10 +618,18 @@ body {
 
 /* ===== RESPONSIVE ===== */
 @media (max-width: 900px) {
+    .sidebar {
+        order: 2;
+    }
+
+    .content-area {
+        order: 1;
+    }
     .app-shell {
         grid-template-columns: 1fr;
         padding: 14px 16px 24px;
     }
+    
     .sidebar {
         position: static;
         max-height: none;
