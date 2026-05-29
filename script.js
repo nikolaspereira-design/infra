@@ -401,7 +401,7 @@ function downloadCsv() {
     const blob = new Blob(
     ['\uFEFF' + csvContent],
     { type: 'text/csv;charset=utf-8;' }
-);
+);git 
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
     link.download = 'lista_kts.csv';

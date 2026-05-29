@@ -150,6 +150,14 @@ body {
     gap: 16px;
 }
 
+#main-panel {
+    order: 1;
+}
+
+#project-bar {
+    order: 2;
+}
+
 /* ===== PROJECT BAR ===== */
 .project-bar {
     background: var(--surface);
