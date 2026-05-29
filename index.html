@@ -29,6 +29,59 @@
         <!-- MAIN AREA -->
         <section class="content-area">
 
+            <div class="panel" id="main-panel">
+                <div id="welcome-state" class="welcome-state">
+                    <img src="logo_kts.jpeg" alt="KTS" class="welcome-logo" onerror="this.style.display='none'" />
+                    <h3>Bem-vindo ao KTS Dimensionamento</h3>
+                    <p>Selecione um material na lista à esquerda para iniciar o dimensionamento.<br>Os trechos adicionados aparecerão aqui.</p>
+                    <div class="welcome-steps">
+                        <div class="step"><span class="step-num">1</span><span>Escolha o material</span></div>
+                        <div class="step-arrow">→</div>
+                        <div class="step"><span class="step-num">2</span><span>Preencha no painel</span></div>
+                        <div class="step-arrow">→</div>
+                        <div class="step"><span class="step-num">3</span><span>Exporte o relatório</span></div>
+                    </div>
+                </div>
+
+                <div id="trechos-list" class="trechos-list hidden"></div>
+
+                <div id="results-state" class="results-state hidden">
+                    <div class="results-header">
+                        <h3>Lista Consolidada de Materiais</h3>
+                        <div class="results-actions">
+                            <button id="send-whatsapp-btn" class="button success-sm">
+                                📲 Enviar via WhatsApp
+                            </button>
+                            <button id="back-to-trechos-btn" class="button ghost-sm">← Voltar</button>
+                        </div>
+                    </div>
+                    <div class="table-wrap">
+                        <table class="result-table">
+                            <thead>
+                                <tr>
+                                    <th>Descrição</th>
+                                    <th>Unid.</th>
+                                    <th>Qtd Final</th>
+                                </tr>
+                            </thead>
+                            <tbody id="result-table-body"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="project-bar" id="project-bar">
+                <div class="project-bar-info">
+                    <span class="project-bar-icon">📋</span>
+                    <span id="project-count">Nenhum trecho adicionado</span>
+                </div>
+                <div class="project-bar-actions">
+                    <button id="open-results-btn" class="button primary-sm" disabled>Ver lista de materiais</button>
+                    <button id="reset-project-btn" class="button ghost-sm">Limpar</button>
+                </div>
+            </div>
+
+        </section>
             <!-- PROJECT SUMMARY BAR -->
             <div class="project-bar" id="project-bar">
                 <div class="project-bar-info">
