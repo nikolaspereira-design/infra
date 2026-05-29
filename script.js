@@ -454,7 +454,8 @@ openResultsBtn.addEventListener('click', openResults);
 resetProjectBtn.addEventListener('click', resetProject);
 sendWhatsappBtn.addEventListener('click', sendToWhatsapp);
 
-function sendToWhatsapp() {
+async function sendToWhatsapp() {
+
     const rows = consolidateMaterials();
 
     if (!rows.length) {
@@ -462,35 +463,55 @@ function sendToWhatsapp() {
         return;
     }
 
-    // Monta o texto
-    let message = '📋 *KTS - Lista de Materiais*%0A%0A';
+    const csvContent = [
+        'DESCRIÇÃO;UNID;QUANTIDADE FINAL',
+        ...rows.map(row =>
+            `${row.name};${row.unit};${row.quantity}`
+        )
+    ].join('\n');
 
-    rows.forEach(row => {
-        message += `• ${row.name} | ${row.unit} | QTD: ${row.quantity}%0A`;
-    });
-
-    message += '%0A🚀 Gerado pelo KTS Dimensionamento';
-
-    // Link do grupo
-    const groupLink = 'https://chat.whatsapp.com/JGW6ublGaTUESUa8vMseXO';
-
-    // Abre grupo
-    window.open(groupLink, '_blank');
-
-    // Copia mensagem automaticamente
-    navigator.clipboard.writeText(
-        decodeURIComponent(message.replace(/%0A/g, '\n'))
+    const blob = new Blob(
+        [csvContent],
+        { type: 'text/csv;charset=utf-8;' }
     );
 
-    // Aviso
-    setTimeout(() => {
-        alert(
-            'Grupo aberto com sucesso!\n\n' +
-            'A lista foi copiada automaticamente.\n' +
-            'Agora basta colar no WhatsApp (CTRL + V) e enviar.'
+    const file = new File(
+        [blob],
+        `KTS_${Date.now()}.csv`,
+        { type: 'text/csv' }
+    );
+
+    // Compartilhamento nativo do celular
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+
+        try {
+
+            await navigator.share({
+                title: 'KTS Lista de Materiais',
+                text: 'Segue lista de materiais.',
+                files: [file]
+            });
+
+        } catch (err) {
+            console.log(err);
+        }
+
+    } else {
+
+        // fallback desktop
+        const link = document.createElement('a');
+
+        link.href = URL.createObjectURL(blob);
+        link.download = file.name;
+        link.click();
+
+        window.open(
+            'https://chat.whatsapp.com/JGW6ublGaTUESUa8vMseXO',
+            '_blank'
         );
-    }, 1000);
+    }
 }
+sendWhatsappBtn.addEventListener('click', sendToWhatsapp);
 
 // ── Init ──────────────────────────────────────────────────
 renderCatalog();
