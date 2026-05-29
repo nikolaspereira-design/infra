@@ -3,60 +3,72 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>KTS Dimensionamento - Web</title>
-    <link rel="stylesheet" href="styles.css" />
+    <title>KTS Dimensionamento</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
-    <script src="script.js" defer></script>
+    <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
+
     <header class="topbar">
         <img src="header_kts.jpeg" alt="KTS Cabeçalho" class="header-image" />
     </header>
 
     <main class="app-shell">
+
+        <!-- SIDEBAR -->
         <aside class="sidebar">
             <div class="sidebar-card">
-                <h2>Selecione o tipo</h2>
+                <h2>Infraestrutura</h2>
+                <p class="sidebar-hint">Clique em um material para dimensionar</p>
                 <div id="category-list" class="category-list"></div>
-            </div>
-
-            <div class="sidebar-card compact">
-                <h2>Projeto</h2>
-                <p id="project-count">Nenhum trecho adicionado</p>
-                <button id="open-results-btn" class="button secondary">Ver lista consolidada</button>
-                <button id="reset-project-btn" class="button ghost">Limpar projeto</button>
             </div>
         </aside>
 
+        <!-- MAIN AREA -->
         <section class="content-area">
-            <div class="panel" id="form-panel">
-                <div class="panel-header">
-                    <div class="panel-header-row">
-                        <span id="selected-label">Bem-vindo ao sistema KTS</span>
-                        <button id="back-to-selection-btn" class="button secondary hidden">Voltar à seleção</button>
-                    </div>
-                    <p id="form-description" class="form-description">Use o menu à esquerda para escolher a infraestrutura. Adicione trechos e gere a lista de materiais para exportar em CSV ou PDF.</p>
+
+            <!-- PROJECT SUMMARY BAR -->
+            <div class="project-bar" id="project-bar">
+                <div class="project-bar-info">
+                    <span class="project-bar-icon">📋</span>
+                    <span id="project-count">Nenhum trecho adicionado</span>
                 </div>
-                <div class="panel-body" id="main-content">
-                    <div class="welcome-card" id="welcome-card">
-                        <img src="logo_kts.jpeg" alt="KTS" class="welcome-logo" />
-                        <p>Use o menu à esquerda para escolher a infraestrutura. Adicione trechos e gere a lista de materiais para exportar em CSV ou PDF.</p>
-                    </div>
-                    <form id="infra-form" class="infra-form hidden">
-                        <div class="field-group" id="fields-container"></div>
-                        <button type="button" id="add-item-btn" class="button primary">Adicionar trecho</button>
-                    </form>
+                <div class="project-bar-actions">
+                    <button id="open-results-btn" class="button primary-sm" disabled>Ver lista de materiais</button>
+                    <button id="reset-project-btn" class="button ghost-sm">Limpar</button>
                 </div>
             </div>
 
-            <div class="panel hidden" id="results-panel">
-                <div class="panel-header">
-                    <span>Lista Consolidada de Materiais</span>
+            <!-- WELCOME / RESULTS PANEL -->
+            <div class="panel" id="main-panel">
+                <div id="welcome-state" class="welcome-state">
+                    <img src="logo_kts.jpeg" alt="KTS" class="welcome-logo" onerror="this.style.display='none'" />
+                    <h3>Bem-vindo ao KTS Dimensionamento</h3>
+                    <p>Selecione um material na lista à esquerda para iniciar o dimensionamento.<br>Os trechos adicionados aparecerão aqui.</p>
+                    <div class="welcome-steps">
+                        <div class="step"><span class="step-num">1</span><span>Escolha o material</span></div>
+                        <div class="step-arrow">→</div>
+                        <div class="step"><span class="step-num">2</span><span>Preencha no painel</span></div>
+                        <div class="step-arrow">→</div>
+                        <div class="step"><span class="step-num">3</span><span>Exporte o relatório</span></div>
+                    </div>
                 </div>
-                <div class="panel-body">
-                    <div class="actions-row">
-                        <button id="export-csv-btn" class="button success">Exportar CSV</button>
-                        <button id="export-pdf-btn" class="button success">Exportar PDF</button>
+
+                <!-- TRECHOS ADICIONADOS (mini cards) -->
+                <div id="trechos-list" class="trechos-list hidden"></div>
+
+                <!-- RESULTS -->
+                <div id="results-state" class="results-state hidden">
+                    <div class="results-header">
+                        <h3>Lista Consolidada de Materiais</h3>
+                        <div class="results-actions">
+                            <button id="send-whatsapp-btn" class="button success-sm">
+                                📲 Enviar via WhatsApp
+                            </button>
+                            <button id="back-to-trechos-btn" class="button ghost-sm">← Voltar</button>
+                        </div>
                     </div>
                     <div class="table-wrap">
                         <table class="result-table">
@@ -72,13 +84,51 @@
                     </div>
                 </div>
             </div>
+
         </section>
     </main>
 
+    <!-- ===================== MODAL ===================== -->
+    <div class="modal-overlay hidden" id="modal-overlay">
+        <div class="modal" id="modal">
+            <div class="modal-header">
+                <div class="modal-title-group">
+                    <span class="modal-tag">Dimensionamento</span>
+                    <h2 id="modal-title">Material</h2>
+                </div>
+                <button class="modal-close" id="modal-close">✕</button>
+            </div>
+
+            <div class="modal-body">
+                <form id="infra-form">
+                    <div class="field-group" id="fields-container"></div>
+                </form>
+            </div>
+
+            <div class="modal-footer">
+                <div class="modal-feedback hidden" id="modal-feedback">
+                    <span class="feedback-icon">✓</span>
+                    <span id="feedback-text">Trecho adicionado!</span>
+                </div>
+                <div class="modal-footer-actions">
+                    <button type="button" id="add-item-btn" class="button primary-lg">
+                        <span>＋ Adicionar trecho</span>
+                    </button>
+                    <button type="button" id="show-results-btn" class="button accent-lg">
+                        Ver lista de materiais →
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- ===================== /MODAL ===================== -->
+
     <footer class="page-footer">
         <div class="footer-content">
-            <span>KTS Tecnologia & Inovação</span>
+            <span>KTS Tecnologia &amp; Inovação</span>
         </div>
     </footer>
+
+    <script src="script.js" defer></script>
 </body>
 </html>
