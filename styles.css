@@ -669,25 +669,34 @@ body {
         flex-direction: column;
         padding: 14px 16px 24px;
     }
+
+    /* Bem-vindo primeiro */
     .content-area {
-        order: 1; 
+        order: 1;
     }
+
+    /* Infraestrutura depois */
     .sidebar {
-        order: 2; 
+        order: 2;
         position: static;
         max-height: none;
+        width: 100%;
     }
+
     .sidebar-card {
         max-height: 260px;
     }
+
     .category-list {
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        grid-template-columns: 1fr;
         gap: 8px;
     }
+
     .modal {
         max-height: 95vh;
     }
+
     .modal-footer-actions {
         flex-direction: column;
     }
