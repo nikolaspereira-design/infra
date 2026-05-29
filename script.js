@@ -39,7 +39,7 @@ const welcomeState     = document.getElementById('welcome-state');
 const trechosList      = document.getElementById('trechos-list');
 const resultsState     = document.getElementById('results-state');
 const resultTableBody  = document.getElementById('result-table-body');
-const sendWhatsappBtn = document.getElementById('send-whatsapp-btn');
+const sendWhatsappBtn  = document.getElementById('send-whatsapp-btn');
 const backTrechosBtn   = document.getElementById('back-to-trechos-btn');
 
 const modalOverlay     = document.getElementById('modal-overlay');
@@ -401,7 +401,7 @@ function downloadCsv() {
     const csv = ['DESCRIÇÃO;UNID;QUANTIDADE FINAL', ...rows.map(r => `${r.name};${r.unit};${r.quantity}`)].join('\n');
     
     const blob = new Blob(
-        ['\uFEFF' + csvContent], // <-- Aqui está o ajuste: usamos apenas 'csv'
+        ['\uFEFF' + csv], // Correção do BOM e nome da variável
         { type: 'text/csv;charset=utf-8;' }
     );
     
@@ -454,14 +454,13 @@ function resetProject() {
 }
 
 // ── Event listeners ───────────────────────────────────────
-addItemBtn.addEventListener('click',    addItemToProject);
-showResultsBtn.addEventListener('click', openResults);
-openResultsBtn.addEventListener('click', openResults);
-resetProjectBtn.addEventListener('click', resetProject);
-sendWhatsappBtn.addEventListener('click', sendToWhatsapp);
+addItemBtn.addEventListener('click',      addItemToProject);
+showResultsBtn.addEventListener('click',   openResults);
+openResultsBtn.addEventListener('click',   openResults);
+resetProjectBtn.addEventListener('click',  resetProject);
+sendWhatsappBtn.addEventListener('click',  sendToWhatsapp);
 
 async function sendToWhatsapp() {
-
     const rows = consolidateMaterials();
 
     if (!rows.length) {
@@ -477,7 +476,7 @@ async function sendToWhatsapp() {
     ].join('\n');
 
     const blob = new Blob(
-        [csvContent],
+        ['\uFEFF' + csvContent], // Correção do BOM para Excel
         { type: 'text/csv;charset=utf-8;' }
     );
 
@@ -489,21 +488,16 @@ async function sendToWhatsapp() {
 
     // Compartilhamento nativo do celular
     if (navigator.canShare && navigator.canShare({ files: [file] })) {
-
         try {
-
             await navigator.share({
                 title: 'KTS Lista de Materiais',
                 text: 'Segue lista de materiais.',
                 files: [file]
             });
-
         } catch (err) {
             console.log(err);
         }
-
     } else {
-
         // fallback desktop
         const link = document.createElement('a');
 
@@ -517,7 +511,6 @@ async function sendToWhatsapp() {
         );
     }
 }
-sendWhatsappBtn.addEventListener('click', sendToWhatsapp);
 
 // ── Init ──────────────────────────────────────────────────
 renderCatalog();
