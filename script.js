@@ -398,7 +398,10 @@ function downloadCsv() {
     const rows = consolidateMaterials();
     if (!rows.length) { alert('Gere a lista antes de exportar.'); return; }
     const csv = ['DESCRIÇÃO;UNID;QUANTIDADE FINAL', ...rows.map(r => `${r.name};${r.unit};${r.quantity}`)].join('\n');
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const blob = new Blob(
+    ['\uFEFF' + csvContent],
+    { type: 'text/csv;charset=utf-8;' }
+);
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
     link.download = 'lista_kts.csv';
