@@ -1,7 +1,5 @@
 /* ============================================================
    KTS Dimensionamento — script.js
-   Fluxo: clicar no material → modal abre → preenche → adiciona
-   Os trechos ficam visíveis no painel principal
    ============================================================ */
 
 const itemsCatalog = [
@@ -42,6 +40,9 @@ const resultTableBody  = document.getElementById('result-table-body');
 const sendWhatsappBtn  = document.getElementById('send-whatsapp-btn');
 const backTrechosBtn   = document.getElementById('back-to-trechos-btn');
 
+// NOVO: Referência para a caixa de observações
+const projectObs       = document.getElementById('project-obs');
+
 const modalOverlay     = document.getElementById('modal-overlay');
 const modalTitle       = document.getElementById('modal-title');
 const infraForm        = document.getElementById('infra-form');
@@ -76,7 +77,6 @@ function openModal(item) {
     modalOverlay.classList.remove('hidden');
     document.body.style.overflow = 'hidden';
 
-    // focus first input
     setTimeout(() => {
         const first = fieldsContainer.querySelector('input');
         if (first) first.focus();
@@ -116,7 +116,6 @@ function renderFormFields(type) {
         input.min  = '0';
         input.step = field.step || '1';
 
-        // select all on focus for quick editing
         input.addEventListener('focus', () => input.select());
 
         wrap.appendChild(label);
@@ -200,7 +199,6 @@ function updateProjectCount() {
 }
 
 function renderTrechosList() {
-    // Switch panels
     welcomeState.classList.add('hidden');
     resultsState.classList.add('hidden');
     trechosList.classList.remove('hidden');
@@ -211,7 +209,6 @@ function renderTrechosList() {
         return;
     }
 
-    // Build header once
     trechosList.innerHTML = `
         <div class="trechos-list-header">
             <h3>Trechos adicionados</h3>
@@ -221,8 +218,6 @@ function renderTrechosList() {
     projectItems.forEach((item, idx) => {
         const card = document.createElement('div');
         card.className = 'trecho-card';
-
-        // Build a short detail string
         const details = buildTrechoDetails(item);
 
         card.innerHTML = `
@@ -235,7 +230,6 @@ function renderTrechosList() {
         trechosList.appendChild(card);
     });
 
-    // Remove buttons
     trechosList.querySelectorAll('.trecho-remove').forEach(btn => {
         btn.addEventListener('click', () => {
             const i = Number(btn.dataset.idx);
@@ -398,10 +392,19 @@ function downloadCsv() {
     const rows = consolidateMaterials();
     if (!rows.length) { alert('Gere a lista antes de exportar.'); return; }
     
-    const csv = ['DESCRIÇÃO;UNID;QUANTIDADE FINAL', ...rows.map(r => `${r.name};${r.unit};${r.quantity}`)].join('\n');
+    let csv = ['DESCRIÇÃO;UNID;QUANTIDADE FINAL', ...rows.map(r => `${r.name};${r.unit};${r.quantity}`)].join('\n');
+    
+    // Captura as observações e adiciona no final do CSV
+    const obsText = projectObs.value.trim();
+    if (obsText) {
+        // Trocamos quebras de linha por espaço para não bugar o Excel
+        csv += `\n\nOBSERVAÇÕES;\n${obsText.replace(/\n/g, ' - ')}`;
+    }
+    
+    const universalBOM = new Uint8Array([0xEF, 0xBB, 0xBF]);
     
     const blob = new Blob(
-        ['\uFEFF' + csv], // Correção do BOM e nome da variável
+        [universalBOM, csv],
         { type: 'text/csv;charset=utf-8;' }
     );
     
@@ -439,6 +442,22 @@ function downloadPdf() {
         y += 18;
     });
 
+    // Imprime as observações no PDF, se houver
+    const obsText = projectObs.value.trim();
+    if (obsText) {
+        y += 20;
+        if (y > 740) { doc.addPage(); y = 60; }
+        doc.setFontSize(10);
+        doc.setTextColor('#1f2937');
+        doc.setFont(undefined, 'bold');
+        doc.text('OBSERVAÇÕES:', 40, y);
+        y += 15;
+        doc.setFont(undefined, 'normal');
+        doc.setTextColor('#6b7280');
+        const splitObs = doc.splitTextToSize(obsText, 500); // Quebra o texto se for muito longo
+        doc.text(splitObs, 40, y);
+    }
+
     doc.save('lista_kts.pdf');
 }
 
@@ -447,6 +466,7 @@ function resetProject() {
     if (!projectItems.length) return;
     if (!confirm('Tem certeza que deseja limpar todos os trechos?')) return;
     projectItems.length = 0;
+    projectObs.value = ''; // Limpa as observações também
     updateProjectCount();
     welcomeState.classList.remove('hidden');
     trechosList.classList.add('hidden');
@@ -468,15 +488,19 @@ async function sendToWhatsapp() {
         return;
     }
 
-    const csvContent = [
+    let csvContent = [
         'DESCRIÇÃO;UNID;QUANTIDADE FINAL',
         ...rows.map(row =>
             `${row.name};${row.unit};${row.quantity}`
         )
     ].join('\n');
 
-    // === SOLUÇÃO BLINDADA PARA O WHATSAPP ===
-    // Forçamos os bytes exatos do BOM (Byte Order Mark) para o Excel não se perder
+    // Captura as observações para o arquivo do WhatsApp
+    const obsText = projectObs.value.trim();
+    if (obsText) {
+        csvContent += `\n\nOBSERVAÇÕES;\n${obsText.replace(/\n/g, ' - ')}`;
+    }
+
     const universalBOM = new Uint8Array([0xEF, 0xBB, 0xBF]);
     
     const file = new File(
@@ -485,26 +509,21 @@ async function sendToWhatsapp() {
         { type: 'text/csv;charset=utf-8' }
     );
 
-    // Compartilhamento nativo do celular
     if (navigator.canShare && navigator.canShare({ files: [file] })) {
         try {
             await navigator.share({
                 title: 'KTS Lista de Materiais',
-                text: 'Segue lista de materiais.',
+                text: 'Segue lista de materiais e observações.',
                 files: [file]
             });
         } catch (err) {
             console.log(err);
         }
     } else {
-        // fallback desktop
         const link = document.createElement('a');
-
-        // Agora usamos o 'file' direto no link
         link.href = URL.createObjectURL(file);
         link.download = file.name;
         link.click();
-
         window.open(
             'https://chat.whatsapp.com/JGW6ublGaTUESUa8vMseXO',
             '_blank'

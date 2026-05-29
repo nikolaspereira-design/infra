@@ -150,14 +150,6 @@ body {
     gap: 16px;
 }
 
-#main-panel {
-    order: 1;
-}
-
-#project-bar {
-    order: 2;
-}
-
 /* ===== PROJECT BAR ===== */
 .project-bar {
     background: var(--surface);
@@ -345,7 +337,7 @@ body {
     color: var(--danger);
 }
 
-/* ===== RESULTS STATE ===== */
+/* ===== RESULTS STATE E OBSERVAÇÕES ===== */
 .results-state {
     padding: 20px;
 }
@@ -407,6 +399,43 @@ body {
 
 .result-table tbody tr:last-child td {
     border-bottom: none;
+}
+
+/* CAIXA DE OBSERVAÇÕES */
+.obs-container {
+    margin-top: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    background: var(--surface-alt);
+    padding: 16px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
+}
+
+.obs-container label {
+    font-family: 'Sora', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--primary-strong);
+}
+
+.obs-container textarea {
+    width: 100%;
+    padding: 12px 14px;
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    background: white;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.9rem;
+    color: var(--text);
+    resize: vertical;
+    transition: border-color 0.15s;
+}
+
+.obs-container textarea:focus {
+    outline: none;
+    border-color: var(--primary);
 }
 
 /* ===== MODAL ===== */
@@ -626,18 +655,10 @@ body {
 
 /* ===== RESPONSIVE ===== */
 @media (max-width: 900px) {
-    .sidebar {
-        order: 2;
-    }
-
-    .content-area {
-        order: 1;
-    }
     .app-shell {
         grid-template-columns: 1fr;
         padding: 14px 16px 24px;
     }
-    
     .sidebar {
         position: static;
         max-height: none;
