@@ -481,6 +481,7 @@ resetProjectBtn.addEventListener('click',  resetProject);
 sendWhatsappBtn.addEventListener('click',  sendToWhatsapp);
 
 async function sendToWhatsapp() {
+
     const rows = consolidateMaterials();
 
     if (!rows.length) {
@@ -488,47 +489,60 @@ async function sendToWhatsapp() {
         return;
     }
 
-    let csvContent = [
-        'DESCRIÇÃO;UNID;QUANTIDADE FINAL',
-        ...rows.map(row =>
-            `${row.name};${row.unit};${row.quantity}`
-        )
-    ].join('\n');
+    let texto = '*KTS - Lista de Materiais*%0A%0A';
 
-    // Captura as observações para o arquivo do WhatsApp
+    rows.forEach(row => {
+        texto += `• ${row.name} | ${row.unit} | ${row.quantity}%0A`;
+    });
+
+    // Observações
     const obsText = projectObs.value.trim();
+
     if (obsText) {
-        csvContent += `\n\nOBSERVAÇÕES;\n${obsText.replace(/\n/g, ' - ')}`;
+        texto += `%0A*OBSERVAÇÕES*%0A${obsText}`;
     }
 
-    const universalBOM = new Uint8Array([0xEF, 0xBB, 0xBF]);
-    
-    const file = new File(
-        [universalBOM, csvContent],
-        `KTS_${Date.now()}.csv`,
-        { type: 'text/csv;charset=utf-8' }
-    );
+    // MOBILE
+    if (/Android|iPhone|iPad|iPod/i.test(navigator.userAgent)) {
 
-    if (navigator.canShare && navigator.canShare({ files: [file] })) {
-        try {
-            await navigator.share({
-                title: 'KTS Lista de Materiais',
-                text: 'Segue lista de materiais e observações.',
-                files: [file]
-            });
-        } catch (err) {
-            console.log(err);
-        }
-    } else {
-        const link = document.createElement('a');
-        link.href = URL.createObjectURL(file);
-        link.download = file.name;
-        link.click();
-        window.open(
-            'https://chat.whatsapp.com/JGW6ublGaTUESUa8vMseXO',
-            '_blank'
+        let csvContent = [
+            'DESCRIÇÃO;UNID;QUANTIDADE FINAL',
+            ...rows.map(row =>
+                `${row.name};${row.unit};${row.quantity}`
+            )
+        ].join('\n');
+
+        const universalBOM = new Uint8Array([0xEF, 0xBB, 0xBF]);
+
+        const file = new File(
+            [universalBOM, csvContent],
+            `KTS_${Date.now()}.csv`,
+            { type: 'text/csv;charset=utf-8' }
         );
+
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+
+            try {
+
+                await navigator.share({
+                    title: 'KTS Lista de Materiais',
+                    text: 'Segue lista de materiais.',
+                    files: [file]
+                });
+
+                return;
+
+            } catch (err) {
+                console.log(err);
+            }
+        }
     }
+
+    // PC / FALLBACK
+    window.open(
+        `https://wa.me/?text=${texto}`,
+        '_blank'
+    );
 }
 
 // ── Init ──────────────────────────────────────────────────
