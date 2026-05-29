@@ -475,15 +475,14 @@ async function sendToWhatsapp() {
         )
     ].join('\n');
 
-    const blob = new Blob(
-        ['\uFEFF' + csvContent], // Correção do BOM para Excel
-        { type: 'text/csv;charset=utf-8;' }
-    );
-
+    // === SOLUÇÃO BLINDADA PARA O WHATSAPP ===
+    // Forçamos os bytes exatos do BOM (Byte Order Mark) para o Excel não se perder
+    const universalBOM = new Uint8Array([0xEF, 0xBB, 0xBF]);
+    
     const file = new File(
-        [blob],
+        [universalBOM, csvContent],
         `KTS_${Date.now()}.csv`,
-        { type: 'text/csv' }
+        { type: 'text/csv;charset=utf-8' }
     );
 
     // Compartilhamento nativo do celular
@@ -501,7 +500,8 @@ async function sendToWhatsapp() {
         // fallback desktop
         const link = document.createElement('a');
 
-        link.href = URL.createObjectURL(blob);
+        // Agora usamos o 'file' direto no link
+        link.href = URL.createObjectURL(file);
         link.download = file.name;
         link.click();
 
