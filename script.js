@@ -58,6 +58,11 @@ const adminFormCancel  = document.getElementById('admin-form-cancel');
 const adminFormMessage = document.getElementById('admin-form-message');
 
 const loginOverlay     = document.getElementById('login-overlay');
+const loginUsername    = document.getElementById('login-username');
+const loginPassword    = document.getElementById('login-password');
+const loginSubmit      = document.getElementById('login-submit');
+const loginMessage     = document.getElementById('login-message');
+const modalOverlay     = document.getElementById('modal-overlay');
 const modalTitle       = document.getElementById('modal-title');
 const infraForm        = document.getElementById('infra-form');
 const fieldsContainer  = document.getElementById('fields-container');
