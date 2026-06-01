@@ -42,6 +42,15 @@ const backTrechosBtn   = document.getElementById('back-to-trechos-btn');
 
 // NOVO: Referência para a caixa de observações
 const projectObs       = document.getElementById('project-obs');
+const userBar          = document.getElementById('user-bar');
+const userNameLabel    = document.getElementById('user-name');
+const userRoleLabel    = document.getElementById('user-role');
+
+const loginOverlay     = document.getElementById('login-overlay');
+const loginUsername    = document.getElementById('login-username');
+const loginPassword    = document.getElementById('login-password');
+const loginSubmit      = document.getElementById('login-submit');
+const loginMessage     = document.getElementById('login-message');
 
 const modalOverlay     = document.getElementById('modal-overlay');
 const modalTitle       = document.getElementById('modal-title');
@@ -545,6 +554,68 @@ async function sendToWhatsapp() {
     );
 }
 
+// ── Login ─────────────────────────────────────────────────
+const users = [
+    { user: 'nikolas', pass: '4x%t7kADM', role: 'admin' },
+    { user: 'goes',    pass: 'senha123', role: 'admin' },
+    { user: 'maria',   pass: 'kts2026', role: 'user' }
+];
+
+let currentUser = null;
+let currentRole = null;
+
+function handleLogin() {
+    const user = loginUsername.value.trim();
+    const pass = loginPassword.value.trim();
+    const match = users.find(account => account.user === user && account.pass === pass);
+
+    if (!match) {
+        loginMessage.textContent = 'Usuário ou senha incorretos.';
+        loginMessage.classList.remove('hidden');
+        loginPassword.value = '';
+        loginPassword.focus();
+        return;
+    }
+
+    currentUser = match.user;
+    currentRole = match.role;
+    loginOverlay.classList.add('hidden');
+    document.body.classList.remove('locked');
+    loginMessage.classList.add('hidden');
+    loginUsername.value = '';
+    loginPassword.value = '';
+    renderCatalog();
+    updateProjectCount();
+    updateUserBadge();
+    applyRolePermissions();
+}
+
+function updateUserBadge() {
+    userBar.classList.remove('hidden');
+    userNameLabel.textContent = currentUser;
+    userRoleLabel.textContent = currentRole === 'admin' ? 'ADMIN' : 'Usuário comum';
+}
+
+function applyRolePermissions() {
+    if (currentRole === 'admin') {
+        resetProjectBtn.disabled = false;
+        resetProjectBtn.title = '';
+    } else {
+        resetProjectBtn.disabled = true;
+        resetProjectBtn.title = 'Apenas administradores podem limpar o projeto';
+    }
+}
+
+loginSubmit.addEventListener('click', handleLogin);
+loginPassword.addEventListener('keydown', event => {
+    if (event.key === 'Enter') handleLogin();
+});
+
+loginUsername.addEventListener('keydown', event => {
+    if (event.key === 'Enter') loginPassword.focus();
+});
+
 // ── Init ──────────────────────────────────────────────────
+document.body.classList.add('locked');
 renderCatalog();
 updateProjectCount();

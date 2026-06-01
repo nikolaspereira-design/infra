@@ -21,6 +21,29 @@
     </header>
     <div class="site-update-banner">Versão atualizada. Abra o link do GitHub Pages para ver a versão mais recente.</div>
 
+    <div class="user-bar hidden" id="user-bar">
+        <span>👤 <strong id="user-name"></strong> — <em id="user-role"></em></span>
+    </div>
+
+    <div class="login-overlay" id="login-overlay">
+        <div class="login-card">
+            <h2>Entrar no app KTS</h2>
+            <p>Informe usuário e senha para acessar o dimensionamento.</p>
+            <div class="login-field">
+                <label for="login-username">Usuário</label>
+                <input id="login-username" type="text" placeholder="nome de usuário" autocomplete="username" />
+            </div>
+            <div class="login-field">
+                <label for="login-password">Senha</label>
+                <input id="login-password" type="password" placeholder="senha" autocomplete="current-password" />
+            </div>
+            <div class="login-footer">
+                <button id="login-submit" class="button primary-lg">Entrar</button>
+            </div>
+            <div class="login-error-message hidden" id="login-message">Usuário ou senha incorretos.</div>
+        </div>
+    </div>
+
     <main class="app-shell">
 
         <!-- CONTEÚDO PRINCIPAL PRIMEIRO -->
@@ -259,5 +282,4 @@
     <!-- Atualizado para publicação -->
 
 </body>
-</html>
-```
+</html> 

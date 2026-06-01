@@ -38,6 +38,94 @@ body {
     box-shadow: 0 10px 24px rgba(218, 165, 32, 0.08);
 }
 
+.login-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.78);
+    backdrop-filter: blur(4px);
+    z-index: 2000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.login-card {
+    width: min(480px, 100%);
+    background: white;
+    border-radius: 24px;
+    padding: 32px 28px;
+    box-shadow: 0 32px 90px rgba(15, 23, 42, 0.15);
+    border: 1px solid rgba(30, 58, 95, 0.08);
+}
+
+.login-card h2 {
+    margin-bottom: 10px;
+    font-family: 'Sora', sans-serif;
+    font-size: 1.45rem;
+    color: var(--primary-strong);
+}
+
+.login-card p {
+    margin-bottom: 24px;
+    color: var(--muted);
+    line-height: 1.65;
+}
+
+.login-field {
+    display: grid;
+    gap: 8px;
+    margin-bottom: 18px;
+}
+
+.login-field label {
+    font-size: 0.92rem;
+    font-weight: 700;
+    color: var(--primary-strong);
+}
+
+.login-field input {
+    width: 100%;
+    padding: 14px 16px;
+    border: 1.5px solid var(--border);
+    border-radius: 14px;
+    background: var(--surface-alt);
+    color: var(--text);
+    font-size: 0.95rem;
+}
+
+.login-field input:focus {
+    outline: none;
+    border-color: var(--primary);
+    background: white;
+}
+
+.login-footer {
+    margin-top: 10px;
+}
+
+.login-error-message {
+    margin-top: 16px;
+    padding: 12px 14px;
+    border-radius: 12px;
+    background: #fee2e2;
+    color: #991b1b;
+    font-weight: 700;
+}
+
+.user-bar {
+    max-width: 1400px;
+    margin: 0 auto 16px;
+    padding: 10px 28px;
+    border-radius: 14px;
+    background: #f8fafc;
+    border: 1px solid #d6e4f4;
+    color: var(--primary-strong);
+    font-weight: 700;
+}
+
+body.locked { overflow: hidden; }
+
 .topbar {
     width: 100%;
     background: transparent;
