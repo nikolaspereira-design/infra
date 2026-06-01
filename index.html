@@ -171,6 +171,48 @@
                 </div>
             </div>
 
+            <div class="admin-panel hidden" id="admin-panel">
+                <div class="admin-panel-header">
+                    <div>
+                        <h3>Painel de Administração</h3>
+                        <p>Gerencie usuários, permissões e acesse recursos exclusivos de admin.</p>
+                    </div>
+                    <span class="admin-badge">ADMIN</span>
+                </div>
+
+                <div class="admin-users-card">
+                    <div class="admin-users-header">
+                        <h4>Usuários cadastrados</h4>
+                        <button id="admin-add-user-btn" class="button secondary-sm">Adicionar usuário</button>
+                    </div>
+
+                    <div id="admin-user-list" class="admin-user-list"></div>
+                </div>
+
+                <div class="admin-user-form hidden" id="admin-user-form">
+                    <div class="admin-form-row">
+                        <label for="admin-form-username">Usuário</label>
+                        <input id="admin-form-username" type="text" placeholder="novo usuário" />
+                    </div>
+                    <div class="admin-form-row">
+                        <label for="admin-form-password">Senha</label>
+                        <input id="admin-form-password" type="password" placeholder="senha" />
+                    </div>
+                    <div class="admin-form-row">
+                        <label for="admin-form-role">Função</label>
+                        <select id="admin-form-role">
+                            <option value="user">Usuário comum</option>
+                            <option value="admin">Admin</option>
+                        </select>
+                    </div>
+                    <div class="admin-form-actions">
+                        <button type="button" id="admin-form-save" class="button primary-sm">Salvar usuário</button>
+                        <button type="button" id="admin-form-cancel" class="button ghost-sm">Cancelar</button>
+                    </div>
+                    <div class="admin-form-message hidden" id="admin-form-message"></div>
+                </div>
+            </div>
+
         </section>
 
         <!-- SIDEBAR DEPOIS -->

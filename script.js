@@ -46,13 +46,18 @@ const userBar          = document.getElementById('user-bar');
 const userNameLabel    = document.getElementById('user-name');
 const userRoleLabel    = document.getElementById('user-role');
 
-const loginOverlay     = document.getElementById('login-overlay');
-const loginUsername    = document.getElementById('login-username');
-const loginPassword    = document.getElementById('login-password');
-const loginSubmit      = document.getElementById('login-submit');
-const loginMessage     = document.getElementById('login-message');
+const adminPanel       = document.getElementById('admin-panel');
+const adminUserList    = document.getElementById('admin-user-list');
+const adminAddUserBtn  = document.getElementById('admin-add-user-btn');
+const adminUserForm    = document.getElementById('admin-user-form');
+const adminFormUsername= document.getElementById('admin-form-username');
+const adminFormPassword= document.getElementById('admin-form-password');
+const adminFormRole    = document.getElementById('admin-form-role');
+const adminFormSave    = document.getElementById('admin-form-save');
+const adminFormCancel  = document.getElementById('admin-form-cancel');
+const adminFormMessage = document.getElementById('admin-form-message');
 
-const modalOverlay     = document.getElementById('modal-overlay');
+const loginOverlay     = document.getElementById('login-overlay');
 const modalTitle       = document.getElementById('modal-title');
 const infraForm        = document.getElementById('infra-form');
 const fieldsContainer  = document.getElementById('fields-container');
@@ -556,8 +561,8 @@ async function sendToWhatsapp() {
 
 // ── Login ─────────────────────────────────────────────────
 const users = [
-    { user: 'nikolas', pass: '4x%t7kADM', role: 'admin' },
-    { user: 'goes',    pass: 'senha123', role: 'admin' },
+    { user: 'Nikolas', pass: '4x%t7kADM', role: 'admin' },
+    { user: 'Goes',    pass: 'senha123', role: 'admin' },
     { user: 'maria',   pass: 'kts2026', role: 'user' }
 ];
 
@@ -588,6 +593,7 @@ function handleLogin() {
     updateProjectCount();
     updateUserBadge();
     applyRolePermissions();
+    renderAdminPanel();
 }
 
 function updateUserBadge() {
@@ -605,6 +611,89 @@ function applyRolePermissions() {
         resetProjectBtn.title = 'Apenas administradores podem limpar o projeto';
     }
 }
+
+function renderAdminPanel() {
+    if (currentRole === 'admin') {
+        adminPanel.classList.remove('hidden');
+        renderUserList();
+        return;
+    }
+
+    adminPanel.classList.add('hidden');
+}
+
+function renderUserList() {
+    adminUserList.innerHTML = '';
+    users.forEach((account, index) => {
+        const card = document.createElement('div');
+        card.className = 'admin-user-card';
+        card.innerHTML = `
+            <div class="admin-user-info">
+                <strong>${account.user}</strong>
+                <span>${account.role === 'admin' ? 'Administrador' : 'Usuário comum'}</span>
+            </div>
+            <div class="admin-user-actions">
+                <button type="button" class="button ghost-sm" data-index="${index}">Remover</button>
+            </div>
+        `;
+
+        const removeButton = card.querySelector('button');
+        if (account.user === currentUser) {
+            removeButton.disabled = true;
+            removeButton.title = 'Não é possível remover o usuário logado.';
+        }
+
+        removeButton.addEventListener('click', () => removeAdminUser(index));
+        adminUserList.appendChild(card);
+    });
+}
+
+function showAddUserForm() {
+    adminFormMessage.classList.add('hidden');
+    adminFormUsername.value = '';
+    adminFormPassword.value = '';
+    adminFormRole.value = 'user';
+    adminUserForm.classList.remove('hidden');
+}
+
+function hideAdminForm() {
+    adminFormMessage.classList.add('hidden');
+    adminUserForm.classList.add('hidden');
+}
+
+function saveAdminUser() {
+    const username = adminFormUsername.value.trim();
+    const password = adminFormPassword.value.trim();
+    const role = adminFormRole.value;
+
+    if (!username || !password) {
+        adminFormMessage.textContent = 'Preencha usuário e senha.';
+        adminFormMessage.classList.remove('hidden');
+        return;
+    }
+
+    if (users.some(account => account.user.toLowerCase() === username.toLowerCase())) {
+        adminFormMessage.textContent = 'Já existe um usuário com esse nome.';
+        adminFormMessage.classList.remove('hidden');
+        return;
+    }
+
+    users.push({ user: username, pass: password, role });
+    renderUserList();
+    hideAdminForm();
+}
+
+function removeAdminUser(index) {
+    const account = users[index];
+    if (!account || account.user === currentUser) return;
+    if (!confirm(`Remover o usuário ${account.user}?`)) return;
+    users.splice(index, 1);
+    renderUserList();
+}
+
+adminAddUserBtn.addEventListener('click', showAddUserForm);
+adminFormSave.addEventListener('click', saveAdminUser);
+adminFormCancel.addEventListener('click', hideAdminForm);
 
 loginSubmit.addEventListener('click', handleLogin);
 loginPassword.addEventListener('keydown', event => {

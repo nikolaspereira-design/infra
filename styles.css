@@ -124,6 +124,146 @@ body {
     font-weight: 700;
 }
 
+.admin-panel {
+    margin-top: 20px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 24px;
+}
+
+.admin-panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 20px;
+}
+
+.admin-panel-header h3 {
+    font-family: 'Sora', sans-serif;
+    font-size: 1.1rem;
+    color: var(--primary-strong);
+    margin-bottom: 8px;
+}
+
+.admin-panel-header p {
+    color: var(--muted);
+    font-size: 0.95rem;
+    max-width: 680px;
+}
+
+.admin-badge {
+    background: var(--primary);
+    color: white;
+    padding: 8px 14px;
+    border-radius: 999px;
+    font-size: 0.82rem;
+    font-weight: 700;
+}
+
+.admin-users-card {
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 18px;
+    background: var(--surface-alt);
+}
+
+.admin-users-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 14px;
+}
+
+.admin-users-header h4 {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--primary-strong);
+}
+
+.admin-user-list {
+    display: grid;
+    gap: 10px;
+}
+
+.admin-user-card {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 14px;
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+}
+
+.admin-user-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.admin-user-info strong {
+    color: var(--primary-strong);
+}
+
+.admin-user-info span {
+    color: var(--muted);
+    font-size: 0.9rem;
+}
+
+.admin-user-actions button {
+    padding: 8px 12px;
+}
+
+.admin-user-form {
+    margin-top: 18px;
+    display: grid;
+    gap: 14px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 18px;
+    background: #f8fafc;
+}
+
+.admin-form-row {
+    display: grid;
+    gap: 8px;
+}
+
+.admin-form-row label {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--primary-strong);
+}
+
+.admin-form-row input,
+.admin-form-row select {
+    width: 100%;
+    padding: 12px 14px;
+    border: 1.5px solid var(--border);
+    border-radius: 12px;
+    background: white;
+    font-size: 0.95rem;
+}
+
+.admin-form-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.admin-form-message {
+    padding: 12px 14px;
+    border-radius: 12px;
+    background: #fff4e5;
+    color: #92400e;
+    font-weight: 700;
+}
+
 body.locked { overflow: hidden; }
 
 .topbar {
