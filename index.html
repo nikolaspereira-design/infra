@@ -6,116 +6,96 @@
     <title>KTS Dimensionamento</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
-
     <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
-
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
 
     <link rel="stylesheet" href="styles.css" />
 </head>
 
 <body>
-
+    <!-- Header -->
     <header class="topbar">
-        <img src="header_kts.jpeg" alt="KTS Cabeçalho" class="header-image" />
+        <img src="header_kts.jpeg" alt="KTS Cabeçalho" class="topbar__image" />
     </header>
-    <div class="site-update-banner">Versão atualizada. Abra o link do GitHub Pages para ver a versão mais recente.</div>
 
+    <!-- Aviso de atualização -->
+    <div class="update-banner">
+        Versão atualizada. Abra o link do GitHub Pages para ver a versão mais recente.
+    </div>
+
+    <!-- Badge do usuário logado -->
     <div class="user-bar hidden" id="user-bar">
         <span>👤 <strong id="user-name"></strong> — <em id="user-role"></em></span>
     </div>
 
+    <!-- Modal de Login -->
     <div class="login-overlay" id="login-overlay">
         <div class="login-card">
-            <h2>Entrar no app KTS</h2>
-            <p>Informe usuário e senha para acessar o dimensionamento.</p>
-            <div class="login-field">
+            <h2 class="login-card__title">Entrar no app KTS</h2>
+            <p class="login-card__subtitle">Informe usuário e senha para acessar o dimensionamento.</p>
+            
+            <div class="form-field">
                 <label for="login-username">Usuário</label>
                 <input id="login-username" type="text" placeholder="nome de usuário" autocomplete="username" />
             </div>
-            <div class="login-field">
+            
+            <div class="form-field">
                 <label for="login-password">Senha</label>
                 <input id="login-password" type="password" placeholder="senha" autocomplete="current-password" />
             </div>
-            <div class="login-footer">
-                <button id="login-submit" class="button primary-lg">Entrar</button>
+            
+            <button id="login-submit" class="btn btn--primary btn--lg">Entrar</button>
+            
+            <div class="login-card__error hidden" id="login-message">
+                Usuário ou senha incorretos.
             </div>
-            <div class="login-error-message hidden" id="login-message">Usuário ou senha incorretos.</div>
         </div>
     </div>
 
+    <!-- Aplicação principal -->
     <main class="app-shell">
-
-        <!-- CONTEÚDO PRINCIPAL PRIMEIRO -->
+        <!-- Conteúdo principal -->
         <section class="content-area">
-
-            <div class="panel" id="main-panel">
-
+            <div class="panel">
+                <!-- Estado de boas-vindas -->
                 <div id="welcome-state" class="welcome-state">
-                    <img src="logo_kts.jpeg"
-                         alt="KTS"
-                         class="welcome-logo"
-                         onerror="this.style.display='none'" />
-
+                    <img src="logo_kts.jpeg" alt="KTS" class="welcome-state__logo" onerror="this.style.display='none'" />
                     <h3>Bem-vindo ao KTS Dimensionamento</h3>
+                    <p>Selecione um material na lista à esquerda para iniciar o dimensionamento.<br>Os trechos adicionados aparecerão aqui.</p>
 
-                    <p>
-                        Selecione um material na lista à esquerda
-                        para iniciar o dimensionamento.<br>
-                        Os trechos adicionados aparecerão aqui.
-                    </p>
-
-                    <div class="welcome-steps">
-
+                    <div class="welcome-state__steps">
                         <div class="step">
-                            <span class="step-num">1</span>
+                            <span class="step__number">1</span>
                             <span>Escolha o material</span>
                         </div>
-
-                        <div class="step-arrow">→</div>
-
+                        <div class="step__arrow">→</div>
                         <div class="step">
-                            <span class="step-num">2</span>
+                            <span class="step__number">2</span>
                             <span>Preencha no painel</span>
                         </div>
-
-                        <div class="step-arrow">→</div>
-
+                        <div class="step__arrow">→</div>
                         <div class="step">
-                            <span class="step-num">3</span>
+                            <span class="step__number">3</span>
                             <span>Exporte o relatório</span>
                         </div>
-
                     </div>
                 </div>
 
+                <!-- Lista de trechos adicionados -->
                 <div id="trechos-list" class="trechos-list hidden"></div>
 
+                <!-- Estado de resultados -->
                 <div id="results-state" class="results-state hidden">
-
                     <div class="results-header">
-
                         <h3>Lista Consolidada de Materiais</h3>
-
-                        <div class="results-actions">
-
-                            <button id="send-whatsapp-btn"
-                                    class="button success-sm">
-                                📲 Enviar via WhatsApp
-                            </button>
-
-                            <button id="back-to-trechos-btn"
-                                    class="button ghost-sm">
-                                ← Voltar
-                            </button>
-
+                        <div class="results-header__actions">
+                            <button id="send-whatsapp-btn" class="btn btn--success btn--sm">📲 Enviar via WhatsApp</button>
+                            <button id="back-to-trechos-btn" class="btn btn--ghost btn--sm">← Voltar</button>
                         </div>
                     </div>
 
                     <div class="table-wrap">
-
                         <table class="result-table">
-
                             <thead>
                                 <tr>
                                     <th>Descrição</th>
@@ -123,56 +103,32 @@
                                     <th>Qtd Final</th>
                                 </tr>
                             </thead>
-
                             <tbody id="result-table-body"></tbody>
-
                         </table>
-
                     </div>
 
                     <div class="obs-container">
-
-                        <label for="project-obs">
-                            Observações (opcional):
-                        </label>
-
-                        <textarea id="project-obs"
-                                  rows="3"
-                                  placeholder="Adicione detalhes extras, ferramentas necessárias ou avisos para a solicitação..."></textarea>
-
+                        <label for="project-obs">Observações (opcional):</label>
+                        <textarea id="project-obs" rows="3" placeholder="Adicione detalhes extras, ferramentas necessárias ou avisos para a solicitação..."></textarea>
                     </div>
-
                 </div>
             </div>
 
+            <!-- Barra de projeto (status e ações) -->
             <div class="project-bar" id="project-bar">
-
-                <div class="project-bar-info">
-                    <span class="project-bar-icon">📋</span>
-
-                    <span id="project-count">
-                        Nenhum trecho adicionado
-                    </span>
+                <div class="project-bar__info">
+                    <span>📋</span>
+                    <span id="project-count">Nenhum trecho adicionado</span>
                 </div>
-
-                <div class="project-bar-actions">
-
-                    <button id="open-results-btn"
-                            class="button primary-sm"
-                            disabled>
-                        Ver lista de materiais
-                    </button>
-
-                    <button id="reset-project-btn"
-                            class="button ghost-sm">
-                        Limpar
-                    </button>
-
+                <div class="project-bar__actions">
+                    <button id="open-results-btn" class="btn btn--primary btn--sm" disabled>Ver lista de materiais</button>
+                    <button id="reset-project-btn" class="btn btn--ghost btn--sm">Limpar</button>
                 </div>
             </div>
 
+            <!-- Painel Admin -->
             <div class="admin-panel hidden" id="admin-panel">
-                <div class="admin-panel-header">
+                <div class="admin-panel__header">
                     <div>
                         <h3>Painel de Administração</h3>
                         <p>Gerencie usuários, permissões e acesse recursos exclusivos de admin.</p>
@@ -181,147 +137,83 @@
                 </div>
 
                 <div class="admin-users-card">
-                    <div class="admin-users-header">
+                    <div class="admin-users-card__header">
                         <h4>Usuários cadastrados</h4>
-                        <button id="admin-add-user-btn" class="button secondary-sm">Adicionar usuário</button>
+                        <button id="admin-add-user-btn" class="btn btn--secondary btn--sm">Adicionar usuário</button>
                     </div>
-
                     <div id="admin-user-list" class="admin-user-list"></div>
                 </div>
 
-                <div class="admin-user-form hidden" id="admin-user-form">
-                    <div class="admin-form-row">
+                <form id="admin-user-form" class="admin-user-form hidden">
+                    <div class="form-field">
                         <label for="admin-form-username">Usuário</label>
                         <input id="admin-form-username" type="text" placeholder="novo usuário" />
                     </div>
-                    <div class="admin-form-row">
+                    <div class="form-field">
                         <label for="admin-form-password">Senha</label>
                         <input id="admin-form-password" type="password" placeholder="senha" />
                     </div>
-                    <div class="admin-form-row">
+                    <div class="form-field">
                         <label for="admin-form-role">Função</label>
                         <select id="admin-form-role">
                             <option value="user">Usuário comum</option>
                             <option value="admin">Admin</option>
                         </select>
                     </div>
-                    <div class="admin-form-actions">
-                        <button type="button" id="admin-form-save" class="button primary-sm">Salvar usuário</button>
-                        <button type="button" id="admin-form-cancel" class="button ghost-sm">Cancelar</button>
+                    <div class="admin-user-form__actions">
+                        <button type="button" id="admin-form-save" class="btn btn--primary btn--sm">Salvar usuário</button>
+                        <button type="button" id="admin-form-cancel" class="btn btn--ghost btn--sm">Cancelar</button>
                     </div>
-                    <div class="admin-form-message hidden" id="admin-form-message"></div>
-                </div>
+                    <div class="admin-user-form__message hidden" id="admin-form-message"></div>
+                </form>
             </div>
-
         </section>
 
-        <!-- SIDEBAR DEPOIS -->
+        <!-- Sidebar -->
         <aside class="sidebar">
-
             <div class="sidebar-card">
-
                 <h2>Infraestrutura</h2>
-
-                <p class="sidebar-hint">
-                    Clique em um material para dimensionar
-                </p>
-
-                <div id="category-list"
-                     class="category-list"></div>
-
+                <p class="sidebar-card__hint">Clique em um material para dimensionar</p>
+                <div id="category-list" class="category-list"></div>
             </div>
-
         </aside>
-
     </main>
 
-    <!-- MODAL -->
+    <!-- Modal de dimensionamento -->
     <div class="modal-overlay hidden" id="modal-overlay">
-
-        <div class="modal" id="modal">
-
-            <div class="modal-header">
-
-                <div class="modal-title-group">
-
-                    <span class="modal-tag">
-                        Dimensionamento
-                    </span>
-
-                    <h2 id="modal-title">
-                        Material
-                    </h2>
-
+        <div class="modal">
+            <div class="modal__header">
+                <div>
+                    <span class="modal__tag">Dimensionamento</span>
+                    <h2 id="modal-title">Material</h2>
                 </div>
-
-                <button class="modal-close"
-                        id="modal-close">
-                    ✕
-                </button>
-
+                <button class="modal__close" id="modal-close">✕</button>
             </div>
 
-            <div class="modal-body">
-
+            <div class="modal__body">
                 <form id="infra-form">
-
-                    <div class="field-group"
-                         id="fields-container"></div>
-
+                    <div class="field-group" id="fields-container"></div>
                 </form>
-
             </div>
 
-            <div class="modal-footer">
-
-                <div class="modal-feedback hidden"
-                     id="modal-feedback">
-
-                    <span class="feedback-icon">✓</span>
-
-                    <span id="feedback-text">
-                        Trecho adicionado!
-                    </span>
-
+            <div class="modal__footer">
+                <div class="modal__feedback hidden" id="modal-feedback">
+                    <span>✓</span>
+                    <span id="feedback-text">Trecho adicionado!</span>
                 </div>
-
-                <div class="modal-footer-actions">
-
-                    <button type="button"
-                            id="add-item-btn"
-                            class="button primary-lg">
-
-                        <span>＋ Adicionar trecho</span>
-
-                    </button>
-
-                    <button type="button"
-                            id="show-results-btn"
-                            class="button accent-lg">
-
-                        Ver lista de materiais →
-
-                    </button>
-
+                <div class="modal__actions">
+                    <button type="button" id="add-item-btn" class="btn btn--primary btn--lg">＋ Adicionar trecho</button>
+                    <button type="button" id="show-results-btn" class="btn btn--accent btn--lg">Ver lista de materiais →</button>
                 </div>
-
             </div>
-
         </div>
-
     </div>
 
-    <!-- FOOTER -->
+    <!-- Footer -->
     <footer class="page-footer">
-
-        <div class="footer-content">
-            <span>KTS Tecnologia &amp; Inovação</span>
-        </div>
-
+        <span>KTS Tecnologia &amp; Inovação</span>
     </footer>
 
-    <script src="script.js" defer></script>
-    <!-- Atualizado para publicação -->
-
+    <script src="app.js" defer></script>
 </body>
-</html> 
+</html>

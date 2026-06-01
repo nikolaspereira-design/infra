@@ -1,507 +1,442 @@
 /* ============================================================
-   KTS Dimensionamento — script.js
+   KTS Dimensionamento — app.js
+   Structure: State Management + Features
    ============================================================ */
 
-const itemsCatalog = [
-    { label: 'Eletroduto 3/4" — Concreto',           type: 'ELETRODUTO_34_CONCRETO' },
-    { label: 'Eletroduto 3/4" — Drywall',            type: 'ELETRODUTO_34_DRYWALL' },
-    { label: 'Eletroduto 3/4" — Metálica',           type: 'ELETRODUTO_34_METALICA' },
-    { label: 'Eletroduto 1" — Concreto',             type: 'ELETRODUTO_1_CONCRETO' },
-    { label: 'Eletroduto 1" — Drywall',              type: 'ELETRODUTO_1_DRYWALL' },
-    { label: 'Eletroduto 1" — Metálica',             type: 'ELETRODUTO_1_METALICA' },
-    { label: 'Eletroduto 2" — Concreto',             type: 'ELETRODUTO_2_CONCRETO' },
-    { label: 'Eletroduto 2" — Drywall',              type: 'ELETRODUTO_2_DRYWALL' },
-    { label: 'Eletroduto 2" — Metálica',             type: 'ELETRODUTO_2_METALICA' },
-    { label: 'Dutos Enterrados (3/4", 1", 2")',      type: 'DUTOS_ENTERRADOS' },
-    { label: 'Eletrocalha — Mão Francesa',           type: 'CALHA_MF_CONCRETO' },
-    { label: 'Eletrocalha — Suspensa Cabo de Aço',   type: 'CALHA_CABO' },
-    { label: 'Eletrocalha — Igrejinha + Barra',      type: 'CALHA_IGREJINHA' },
-    { label: 'Eletrocalha — Grampo C',               type: 'CALHA_GRAMPO' },
-    { label: 'Perfilado — Mão Francesa',             type: 'PERFILADO_MF_CONCRETO' },
-    { label: 'Perfilado — Grampo C + Balancim',      type: 'PERFILADO_GRAMPO' },
-    { label: 'Perfilado — Chumbador + Barra',        type: 'PERFILADO_BARRA' }
+// ============================================================
+// STATE MANAGEMENT
+// ============================================================
+
+const State = {
+    currentUser: null,
+    currentRole: null,
+    selectedType: null,
+    selectedItemLabel: '',
+    projectItems: [],
+    users: [
+        { user: 'Nikolas', pass: '4x%t7kADM', role: 'admin' },
+        { user: 'Goes', pass: 'senha123', role: 'admin' },
+        { user: 'maria', pass: 'kts2026', role: 'user' }
+    ],
+
+    setUser(user, role) {
+        this.currentUser = user;
+        this.currentRole = role;
+    },
+
+    setSelectedItem(type, label) {
+        this.selectedType = type;
+        this.selectedItemLabel = label;
+    },
+
+    addProjectItem(item) {
+        this.projectItems.push(item);
+    },
+
+    removeProjectItem(index) {
+        this.projectItems.splice(index, 1);
+    },
+
+    resetProject() {
+        this.projectItems = [];
+    },
+
+    addUser(user) {
+        this.users.push(user);
+    },
+
+    removeUser(index) {
+        this.users.splice(index, 1);
+    }
+};
+
+// ============================================================
+// DOM REFERENCES
+// ============================================================
+
+const DOM = {
+    // Header & Auth
+    loginOverlay: document.getElementById('login-overlay'),
+    loginUsername: document.getElementById('login-username'),
+    loginPassword: document.getElementById('login-password'),
+    loginSubmit: document.getElementById('login-submit'),
+    loginMessage: document.getElementById('login-message'),
+    userBar: document.getElementById('user-bar'),
+    userNameLabel: document.getElementById('user-name'),
+    userRoleLabel: document.getElementById('user-role'),
+
+    // Main Content
+    welcomeState: document.getElementById('welcome-state'),
+    trechosList: document.getElementById('trechos-list'),
+    resultsState: document.getElementById('results-state'),
+    categoryList: document.getElementById('category-list'),
+
+    // Project Controls
+    projectCount: document.getElementById('project-count'),
+    projectBar: document.getElementById('project-bar'),
+    openResultsBtn: document.getElementById('open-results-btn'),
+    resetProjectBtn: document.getElementById('reset-project-btn'),
+    backTrechosBtn: document.getElementById('back-to-trechos-btn'),
+
+    // Results
+    resultTableBody: document.getElementById('result-table-body'),
+    sendWhatsappBtn: document.getElementById('send-whatsapp-btn'),
+    projectObs: document.getElementById('project-obs'),
+
+    // Modal
+    modalOverlay: document.getElementById('modal-overlay'),
+    modalTitle: document.getElementById('modal-title'),
+    modalClose: document.getElementById('modal-close'),
+    infraForm: document.getElementById('infra-form'),
+    fieldsContainer: document.getElementById('fields-container'),
+    addItemBtn: document.getElementById('add-item-btn'),
+    showResultsBtn: document.getElementById('show-results-btn'),
+    modalFeedback: document.getElementById('modal-feedback'),
+    feedbackText: document.getElementById('feedback-text'),
+
+    // Admin
+    adminPanel: document.getElementById('admin-panel'),
+    adminAddUserBtn: document.getElementById('admin-add-user-btn'),
+    adminUserList: document.getElementById('admin-user-list'),
+    adminUserForm: document.getElementById('admin-user-form'),
+    adminFormUsername: document.getElementById('admin-form-username'),
+    adminFormPassword: document.getElementById('admin-form-password'),
+    adminFormRole: document.getElementById('admin-form-role'),
+    adminFormSave: document.getElementById('admin-form-save'),
+    adminFormCancel: document.getElementById('admin-form-cancel'),
+    adminFormMessage: document.getElementById('admin-form-message')
+};
+
+// ============================================================
+// CATALOG & FIELDS
+// ============================================================
+
+const CATALOG = [
+    { label: 'Eletroduto 3/4" — Concreto', type: 'ELETRODUTO_34_CONCRETO' },
+    { label: 'Eletroduto 3/4" — Drywall', type: 'ELETRODUTO_34_DRYWALL' },
+    { label: 'Eletroduto 3/4" — Metálica', type: 'ELETRODUTO_34_METALICA' },
+    { label: 'Eletroduto 1" — Concreto', type: 'ELETRODUTO_1_CONCRETO' },
+    { label: 'Eletroduto 1" — Drywall', type: 'ELETRODUTO_1_DRYWALL' },
+    { label: 'Eletroduto 1" — Metálica', type: 'ELETRODUTO_1_METALICA' },
+    { label: 'Eletroduto 2" — Concreto', type: 'ELETRODUTO_2_CONCRETO' },
+    { label: 'Eletroduto 2" — Drywall', type: 'ELETRODUTO_2_DRYWALL' },
+    { label: 'Eletroduto 2" — Metálica', type: 'ELETRODUTO_2_METALICA' },
+    { label: 'Dutos Enterrados (3/4", 1", 2")', type: 'DUTOS_ENTERRADOS' },
+    { label: 'Eletrocalha — Mão Francesa', type: 'CALHA_MF_CONCRETO' },
+    { label: 'Eletrocalha — Suspensa Cabo de Aço', type: 'CALHA_CABO' },
+    { label: 'Eletrocalha — Igrejinha + Barra', type: 'CALHA_IGREJINHA' },
+    { label: 'Eletrocalha — Grampo C', type: 'CALHA_GRAMPO' },
+    { label: 'Perfilado — Mão Francesa', type: 'PERFILADO_MF_CONCRETO' },
+    { label: 'Perfilado — Grampo C + Balancim', type: 'PERFILADO_GRAMPO' },
+    { label: 'Perfilado — Chumbador + Barra', type: 'PERFILADO_BARRA' }
 ];
-
-const projectItems = [];
-let selectedType = null;
-let selectedItemLabel = '';
-let feedbackTimer = null;
-
-// ── DOM refs ──────────────────────────────────────────────
-const categoryList     = document.getElementById('category-list');
-const projectCount     = document.getElementById('project-count');
-const openResultsBtn   = document.getElementById('open-results-btn');
-const resetProjectBtn  = document.getElementById('reset-project-btn');
-
-const welcomeState     = document.getElementById('welcome-state');
-const trechosList      = document.getElementById('trechos-list');
-const resultsState     = document.getElementById('results-state');
-const resultTableBody  = document.getElementById('result-table-body');
-const sendWhatsappBtn  = document.getElementById('send-whatsapp-btn');
-const backTrechosBtn   = document.getElementById('back-to-trechos-btn');
-
-// NOVO: Referência para a caixa de observações
-const projectObs       = document.getElementById('project-obs');
-const userBar          = document.getElementById('user-bar');
-const userNameLabel    = document.getElementById('user-name');
-const userRoleLabel    = document.getElementById('user-role');
-
-const adminPanel       = document.getElementById('admin-panel');
-const adminUserList    = document.getElementById('admin-user-list');
-const adminAddUserBtn  = document.getElementById('admin-add-user-btn');
-const adminUserForm    = document.getElementById('admin-user-form');
-const adminFormUsername= document.getElementById('admin-form-username');
-const adminFormPassword= document.getElementById('admin-form-password');
-const adminFormRole    = document.getElementById('admin-form-role');
-const adminFormSave    = document.getElementById('admin-form-save');
-const adminFormCancel  = document.getElementById('admin-form-cancel');
-const adminFormMessage = document.getElementById('admin-form-message');
-
-const loginOverlay     = document.getElementById('login-overlay');
-const loginUsername    = document.getElementById('login-username');
-const loginPassword    = document.getElementById('login-password');
-const loginSubmit      = document.getElementById('login-submit');
-const loginMessage     = document.getElementById('login-message');
-const modalOverlay     = document.getElementById('modal-overlay');
-const modalTitle       = document.getElementById('modal-title');
-const infraForm        = document.getElementById('infra-form');
-const fieldsContainer  = document.getElementById('fields-container');
-const addItemBtn       = document.getElementById('add-item-btn');
-const showResultsBtn   = document.getElementById('show-results-btn');
-const modalClose       = document.getElementById('modal-close');
-const modalFeedback    = document.getElementById('modal-feedback');
-const feedbackText     = document.getElementById('feedback-text');
-
-// ── Catalog render ────────────────────────────────────────
-function renderCatalog() {
-    categoryList.innerHTML = '';
-    itemsCatalog.forEach(item => {
-        const btn = document.createElement('button');
-        btn.type = 'button';
-        btn.className = 'category-card';
-        btn.dataset.itemType = item.type;
-        btn.innerHTML = `<strong>${item.label}</strong>`;
-        btn.addEventListener('click', () => openModal(item));
-        categoryList.appendChild(btn);
-    });
-}
-
-// ── Modal ─────────────────────────────────────────────────
-function openModal(item) {
-    selectedType = item.type;
-    selectedItemLabel = item.label;
-    modalTitle.textContent = item.label;
-    renderFormFields(item.type);
-    hideFeedback();
-    modalOverlay.classList.remove('hidden');
-    document.body.style.overflow = 'hidden';
-
-    setTimeout(() => {
-        const first = fieldsContainer.querySelector('input');
-        if (first) first.focus();
-    }, 120);
-}
-
-function closeModal() {
-    modalOverlay.classList.add('hidden');
-    document.body.style.overflow = '';
-    selectedType = null;
-}
-
-modalClose.addEventListener('click', closeModal);
-modalOverlay.addEventListener('click', e => {
-    if (e.target === modalOverlay) closeModal();
-});
-document.addEventListener('keydown', e => {
-    if (e.key === 'Escape') closeModal();
-});
-
-// ── Form fields ───────────────────────────────────────────
-function renderFormFields(type) {
-    fieldsContainer.innerHTML = '';
-    getFieldsForType(type).forEach(field => {
-        const wrap = document.createElement('div');
-        wrap.className = 'field-item';
-
-        const label = document.createElement('label');
-        label.textContent = field.label;
-        label.htmlFor = field.name;
-
-        const input = document.createElement('input');
-        input.type = 'number';
-        input.name = field.name;
-        input.id   = field.name;
-        input.value = field.default;
-        input.min  = '0';
-        input.step = field.step || '1';
-
-        input.addEventListener('focus', () => input.select());
-
-        wrap.appendChild(label);
-        wrap.appendChild(input);
-        fieldsContainer.appendChild(wrap);
-    });
-}
 
 function getFieldsForType(type) {
     if (type === 'DUTOS_ENTERRADOS') {
         return [
-            { name: 'm_34',   label: 'Metros — Duto PEAD 3/4"',          default: '0' },
-            { name: 'm_1',    label: 'Metros — Duto PEAD 1"',            default: '0' },
-            { name: 'm_2',    label: 'Metros — Duto PEAD 2"',            default: '0' },
-            { name: 'caixas', label: 'Caixas de Passagem (Concreto)',     default: '0' }
+            { name: 'm_34', label: 'Metros — Duto PEAD 3/4"', default: '0' },
+            { name: 'm_1', label: 'Metros — Duto PEAD 1"', default: '0' },
+            { name: 'm_2', label: 'Metros — Duto PEAD 2"', default: '0' },
+            { name: 'caixas', label: 'Caixas de Passagem (Concreto)', default: '0' }
         ];
     }
 
     const common = [
         { name: 'metros', label: 'Comprimento (metros)', default: '0' },
-        { name: 'curvas', label: 'Curvas 90°',           default: '0' }
+        { name: 'curvas', label: 'Curvas 90°', default: '0' }
     ];
 
     if (type.includes('CALHA') || type.includes('PERFILADO')) {
         const extra = [
             { name: 'emendas', label: 'Emendas Adicionais', default: '0' },
-            { name: 'apoios',  label: 'Apoios Adicionais',  default: '0' }
+            { name: 'apoios', label: 'Apoios Adicionais', default: '0' }
         ];
-        if (type.includes('CABO'))
+
+        if (type.includes('CABO')) {
             extra.push({ name: 'altura', label: 'Altura Suspensão (metros)', default: '4', step: '0.1' });
-        if (type.includes('IGREJINHA') || type.includes('BARRA'))
+        }
+
+        if (type.includes('IGREJINHA') || type.includes('BARRA')) {
             extra.push({ name: 'altura', label: 'Queda Tirante (metros)', default: '0.5', step: '0.1' });
+        }
+
         return [...common, ...extra];
     }
 
     return [...common, { name: 'conduletes', label: 'Conduletes Adicionais', default: '0' }];
 }
 
-// ── Add trecho ────────────────────────────────────────────
-function addItemToProject() {
-    const formData = new FormData(infraForm);
-    const item = { type: selectedType, label: selectedItemLabel };
-    let valid = true;
+// ============================================================
+// MODAL MANAGEMENT
+// ============================================================
 
-    for (const [key, value] of formData.entries()) {
-        const num = Number(value);
-        if (Number.isNaN(num) || num < 0) { valid = false; break; }
-        item[key] = num;
-    }
+const Modal = {
+    open(item) {
+        State.setSelectedItem(item.type, item.label);
+        DOM.modalTitle.textContent = item.label;
+        this.renderFields(item.type);
+        this.hideModal();
+        DOM.modalOverlay.classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
 
-    if (!valid) {
-        alert('Preencha valores numéricos válidos (≥ 0).');
-        return;
-    }
+        setTimeout(() => {
+            const firstInput = DOM.fieldsContainer.querySelector('input');
+            if (firstInput) firstInput.focus();
+        }, 120);
+    },
 
-    projectItems.push(item);
-    infraForm.reset();
-    renderFormFields(selectedType);
+    close() {
+        DOM.modalOverlay.classList.add('hidden');
+        document.body.style.overflow = '';
+        State.setSelectedItem(null, '');
+    },
 
-    showFeedback(`Trecho "${selectedItemLabel}" adicionado! (${projectItems.length} no total)`);
-    updateProjectCount();
-    renderTrechosList();
-}
+    renderFields(type) {
+        DOM.fieldsContainer.innerHTML = '';
+        const fields = getFieldsForType(type);
 
-function showFeedback(msg) {
-    feedbackText.textContent = msg;
-    modalFeedback.classList.remove('hidden');
-    clearTimeout(feedbackTimer);
-    feedbackTimer = setTimeout(hideFeedback, 3500);
-}
+        fields.forEach(field => {
+            const wrap = document.createElement('div');
+            wrap.className = 'field-item';
 
-function hideFeedback() {
-    modalFeedback.classList.add('hidden');
-}
+            const label = document.createElement('label');
+            label.textContent = field.label;
+            label.htmlFor = field.name;
 
-// ── Project count & list ──────────────────────────────────
-function updateProjectCount() {
-    const n = projectItems.length;
-    projectCount.textContent = n === 0 ? 'Nenhum trecho adicionado' : `${n} trecho${n > 1 ? 's' : ''} adicionado${n > 1 ? 's' : ''}`;
-    openResultsBtn.disabled = n === 0;
-}
+            const input = document.createElement('input');
+            input.type = 'number';
+            input.name = field.name;
+            input.id = field.name;
+            input.value = field.default;
+            input.min = '0';
+            input.step = field.step || '1';
+            input.addEventListener('focus', () => input.select());
 
-function renderTrechosList() {
-    welcomeState.classList.add('hidden');
-    resultsState.classList.add('hidden');
-    trechosList.classList.remove('hidden');
-
-    if (projectItems.length === 0) {
-        welcomeState.classList.remove('hidden');
-        trechosList.classList.add('hidden');
-        return;
-    }
-
-    trechosList.innerHTML = `
-        <div class="trechos-list-header">
-            <h3>Trechos adicionados</h3>
-        </div>
-    `;
-
-    projectItems.forEach((item, idx) => {
-        const card = document.createElement('div');
-        card.className = 'trecho-card';
-        const details = buildTrechoDetails(item);
-
-        card.innerHTML = `
-            <div class="trecho-card-info">
-                <strong>${item.label}</strong>
-                <span class="trecho-details">${details}</span>
-            </div>
-            <button class="trecho-remove" title="Remover trecho" data-idx="${idx}">✕</button>
-        `;
-        trechosList.appendChild(card);
-    });
-
-    trechosList.querySelectorAll('.trecho-remove').forEach(btn => {
-        btn.addEventListener('click', () => {
-            const i = Number(btn.dataset.idx);
-            projectItems.splice(i, 1);
-            updateProjectCount();
-            renderTrechosList();
-            if (resultsState && !resultsState.classList.contains('hidden')) {
-                renderResults();
-            }
+            wrap.appendChild(label);
+            wrap.appendChild(input);
+            DOM.fieldsContainer.appendChild(wrap);
         });
-    });
-}
+    },
 
-function buildTrechoDetails(item) {
-    if (item.type === 'DUTOS_ENTERRADOS') {
-        const parts = [];
-        if (item.m_34) parts.push(`3/4": ${item.m_34}m`);
-        if (item.m_1)  parts.push(`1": ${item.m_1}m`);
-        if (item.m_2)  parts.push(`2": ${item.m_2}m`);
-        if (item.caixas) parts.push(`${item.caixas} cx`);
-        return parts.join(' · ') || 'sem valores';
+    showFeedback(message) {
+        DOM.feedbackText.textContent = message;
+        DOM.modalFeedback.classList.remove('hidden');
+        setTimeout(() => this.hideModal(), 3500);
+    },
+
+    hideModal() {
+        DOM.modalFeedback.classList.add('hidden');
     }
-    const parts = [];
-    if (item.metros)     parts.push(`${item.metros}m`);
-    if (item.curvas)     parts.push(`${item.curvas} curva${item.curvas > 1 ? 's' : ''}`);
-    if (item.conduletes) parts.push(`${item.conduletes} condulete${item.conduletes > 1 ? 's' : ''}`);
-    if (item.emendas)    parts.push(`${item.emendas} emenda${item.emendas > 1 ? 's' : ''}`);
-    if (item.apoios)     parts.push(`${item.apoios} apoio${item.apoios > 1 ? 's' : ''}`);
-    if (item.altura)     parts.push(`h=${item.altura}m`);
-    return parts.join(' · ') || 'sem valores';
-}
+};
 
-// ── Results ───────────────────────────────────────────────
-function openResults() {
-    if (!projectItems.length) {
-        alert('Adicione pelo menos um trecho antes de gerar a lista.');
-        return;
-    }
-    renderResults();
-    welcomeState.classList.add('hidden');
-    trechosList.classList.add('hidden');
-    resultsState.classList.remove('hidden');
-    closeModal();
-}
+// ============================================================
+// PROJECT MANAGEMENT
+// ============================================================
 
-function renderResults() {
-    const rows = consolidateMaterials();
-    resultTableBody.innerHTML = '';
-    rows.forEach(item => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `<td>${item.name}</td><td>${item.unit}</td><td>${item.quantity}</td>`;
-        resultTableBody.appendChild(tr);
-    });
-}
+const Project = {
+    addItem() {
+        const formData = new FormData(DOM.infraForm);
+        const item = {
+            type: State.selectedType,
+            label: State.selectedItemLabel
+        };
 
-backTrechosBtn.addEventListener('click', () => {
-    resultsState.classList.add('hidden');
-    renderTrechosList();
-});
-
-// ── Consolidate ───────────────────────────────────────────
-function consolidateMaterials() {
-    const container = {};
-
-    const add = (name, quantity, type = 'principal', unit = 'PEÇA') => {
-        if (quantity <= 0) return;
-        if (!container[name]) container[name] = { name, quantity: 0, type, unit };
-        container[name].quantity += quantity;
-    };
-
-    projectItems.forEach(tr => {
-        const tipo = tr.type;
-
-        if (tipo === 'DUTOS_ENTERRADOS') {
-            add('DUTO CORRUGADO PEAD 3/4"',               tr.m_34  || 0, 'principal', 'METRO');
-            add('DUTO CORRUGADO PEAD 1"',                  tr.m_1   || 0, 'principal', 'METRO');
-            add('DUTO CORRUGADO PEAD 2"',                  tr.m_2   || 0, 'principal', 'METRO');
-            add('CAIXA DE PASSAGEM CONCRETO 50X50',        tr.caixas || 0);
-            add('TAMPA PARA CAIXA DE INSPEÇÃO COM ALÇA',   tr.caixas || 0);
-            return;
-        }
-
-        const m   = tr.metros || 0;
-        const cur = tr.curvas || 0;
-
-        if (tipo.includes('ELETRODUTO')) {
-            const pol = tipo.includes('34') ? '3/4"' : tipo.includes('1_') ? '1"' : '2"';
-            add(`ELETRODUTO GALVANIZADO LEVE ${pol} (BARRA 3m)`, Math.ceil(m / 3));
-            add(`ABRAÇADEIRA ${pol} COM CUNHA`, Math.ceil(m / 1.5));
-            add(`CONDULETE MÚLTIPLO X ${pol}`, 2 + (tr.conduletes || 0));
-            if (cur > 0) add(`CURVA 90º ELETRODUTO ${pol}`, cur);
-
-            const fix = Math.ceil(m / 1.5) + (2 + (tr.conduletes || 0)) * 2;
-            if (tipo.includes('CONCRETO')) {
-                add('BUCHA FISCHER SX 8MM',    fix, 'miudeza');
-                add('PARAFUSO PHILLIPS PANELA', fix, 'miudeza');
-            } else if (tipo.includes('DRYWALL')) {
-                add('BUCHA FLY 8MM',            fix, 'miudeza');
-                add('PARAFUSO PHILLIPS PANELA', fix, 'miudeza');
-            } else if (tipo.includes('METALICA')) {
-                add('PARAFUSO AUTOBROCANTE 5/16', fix, 'miudeza');
+        let isValid = true;
+        for (const [key, value] of formData.entries()) {
+            const num = Number(value);
+            if (Number.isNaN(num) || num < 0) {
+                isValid = false;
+                break;
             }
+            item[key] = num;
+        }
+
+        if (!isValid) {
+            alert('Preencha valores numéricos válidos (≥ 0).');
             return;
         }
 
-        if (tipo.includes('CALHA') || tipo.includes('PERFILADO')) {
-            const isCalha  = tipo.includes('CALHA');
-            const baseName = isCalha ? 'ELETROCALHA 100X50 (BARRA 3m)' : 'PERFILADO 38X38 (BARRA 6m)';
-            const divisor  = isCalha ? 3 : 6;
-            const barras   = Math.ceil(m / divisor);
-            add(baseName, barras);
+        State.addProjectItem(item);
+        DOM.infraForm.reset();
+        Modal.renderFields(State.selectedType);
+        Modal.showFeedback(`Trecho "${State.selectedItemLabel}" adicionado! (${State.projectItems.length} no total)`);
+        this.updateUI();
+    },
 
-            const emendas = barras + (tr.emendas || 0);
-            add(isCalha ? 'EMENDA INTERNA U 100X50' : 'EMENDA INTERNA PERFILADO 38X38', emendas);
+    removeItem(index) {
+        State.removeProjectItem(index);
+        this.updateUI();
+    },
 
-            const apoios = Math.ceil(m / 1.5) + (tr.apoios || 0);
-            let pf_base  = emendas * 8;
+    reset() {
+        if (!confirm('Tem certeza que deseja limpar todos os trechos?')) return;
+        State.resetProject();
+        DOM.projectObs.value = '';
+        this.updateUI();
+        this.showWelcome();
+    },
 
-            if (tipo.includes('MF')) {
-                add('MÃO FRANCESA DE PERFILADO 30 CM', apoios);
-                add('BUCHA FISCHER SX 8MM',    apoios * 4, 'miudeza');
-                add('PARAFUSO PHILLIPS PANELA', apoios * 4, 'miudeza');
-                pf_base += apoios * 2;
-            } else if (tipo.includes('CABO')) {
-                add('SUPORTE SUSPENSO POR CABO DE AÇO', apoios);
-                add('CABO DE AÇO 1/8"', apoios * (tr.altura || 4), 'principal', 'METRO');
-                add('PRENSA CABO DE ALUMINIO 1/8"', apoios * 6);
-            } else if (tipo.includes('IGREJINHA') || tipo.includes('BARRA')) {
-                add(isCalha ? 'SUPORTE BALANÇO (IGREJINHA)' : 'GRAMPO C COM BALANCIM', apoios);
-                add('CHUMBADOR CBA 3/8', apoios);
-                add('BARRA ROSCADA ZINCADA 3/8 X 3000', (apoios * (tr.altura || 0.5)) / 3);
-                add('PORCA SEXTAVADA 3/8',  apoios * 4, 'miudeza');
-                add('ARRUELA LISA 3/8',     apoios * 4, 'miudeza');
-            } else if (tipo.includes('GRAMPO')) {
-                add('GRAMPO C COM BALANCIM', apoios);
+    updateUI() {
+        this.updateCount();
+        this.renderTrechos();
+        this.updateResults();
+    },
+
+    updateCount() {
+        const count = State.projectItems.length;
+        if (count === 0) {
+            DOM.projectCount.textContent = 'Nenhum trecho adicionado';
+            DOM.openResultsBtn.disabled = true;
+        } else {
+            DOM.projectCount.textContent = `${count} trecho${count !== 1 ? 's' : ''} adicionado${count !== 1 ? 's' : ''}`;
+            DOM.openResultsBtn.disabled = false;
+        }
+    },
+
+    renderTrechos() {
+        if (State.projectItems.length === 0) {
+            DOM.trechosList.classList.add('hidden');
+            DOM.welcomeState.classList.remove('hidden');
+            return;
+        }
+
+        DOM.welcomeState.classList.add('hidden');
+        DOM.trechosList.classList.remove('hidden');
+        DOM.trechosList.innerHTML = '';
+
+        State.projectItems.forEach((item, index) => {
+            const card = document.createElement('div');
+            card.className = 'trecho-card';
+
+            const content = document.createElement('div');
+            content.className = 'trecho-card__content';
+
+            const title = document.createElement('div');
+            title.className = 'trecho-card__title';
+            title.textContent = item.label;
+
+            const details = Object.entries(item)
+                .filter(([key]) => !['type', 'label'].includes(key))
+                .map(([key, value]) => `${key}: ${value}`)
+                .join(' • ');
+
+            const detail = document.createElement('div');
+            detail.className = 'trecho-card__detail';
+            detail.textContent = details || 'Sem detalhes';
+
+            content.appendChild(title);
+            content.appendChild(detail);
+
+            const removeBtn = document.createElement('button');
+            removeBtn.className = 'trecho-card__remove';
+            removeBtn.textContent = '✕';
+            removeBtn.type = 'button';
+            removeBtn.addEventListener('click', () => this.removeItem(index));
+
+            card.appendChild(content);
+            card.appendChild(removeBtn);
+            DOM.trechosList.appendChild(card);
+        });
+    },
+
+    updateResults() {
+        const consolidated = this.consolidateMaterials();
+        DOM.resultTableBody.innerHTML = '';
+
+        consolidated.forEach(row => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${row.name}</td>
+                <td>${row.unit}</td>
+                <td><strong>${row.quantity}</strong></td>
+            `;
+            DOM.resultTableBody.appendChild(tr);
+        });
+    },
+
+    consolidateMaterials() {
+        const materials = {};
+
+        State.projectItems.forEach(item => {
+            const key = `${item.type}`;
+            const data = this.getMaterialData(item.type);
+
+            if (!materials[key]) {
+                materials[key] = { ...data, quantity: 0 };
             }
 
-            add('PARAFUSO (LENTILHA) 1/4 x 3/4', pf_base, 'miudeza');
-            add('PORCA SEXTAVADA 1/4',             pf_base, 'miudeza');
+            this.calculateQuantity(item, materials[key]);
+        });
+
+        return Object.values(materials)
+            .sort((a, b) => a.name.localeCompare(b.name));
+    },
+
+    getMaterialData(type) {
+        const map = {
+            'ELETRODUTO_34_CONCRETO': { name: 'Eletroduto 3/4" - Concreto', unit: 'metro' },
+            'ELETRODUTO_34_DRYWALL': { name: 'Eletroduto 3/4" - Drywall', unit: 'metro' },
+            'ELETRODUTO_34_METALICA': { name: 'Eletroduto 3/4" - Metálica', unit: 'metro' },
+            'ELETRODUTO_1_CONCRETO': { name: 'Eletroduto 1" - Concreto', unit: 'metro' },
+            'ELETRODUTO_1_DRYWALL': { name: 'Eletroduto 1" - Drywall', unit: 'metro' },
+            'ELETRODUTO_1_METALICA': { name: 'Eletroduto 1" - Metálica', unit: 'metro' },
+            'ELETRODUTO_2_CONCRETO': { name: 'Eletroduto 2" - Concreto', unit: 'metro' },
+            'ELETRODUTO_2_DRYWALL': { name: 'Eletroduto 2" - Drywall', unit: 'metro' },
+            'ELETRODUTO_2_METALICA': { name: 'Eletroduto 2" - Metálica', unit: 'metro' },
+            'DUTOS_ENTERRADOS': { name: 'Dutos Enterrados', unit: 'metro' },
+            'CALHA_MF_CONCRETO': { name: 'Eletrocalha - Mão Francesa', unit: 'metro' },
+            'CALHA_CABO': { name: 'Eletrocalha - Suspensa Cabo de Aço', unit: 'metro' },
+            'CALHA_IGREJINHA': { name: 'Eletrocalha - Igrejinha + Barra', unit: 'metro' },
+            'CALHA_GRAMPO': { name: 'Eletrocalha - Grampo C', unit: 'metro' },
+            'PERFILADO_MF_CONCRETO': { name: 'Perfilado - Mão Francesa', unit: 'metro' },
+            'PERFILADO_GRAMPO': { name: 'Perfilado - Grampo C + Balancim', unit: 'metro' },
+            'PERFILADO_BARRA': { name: 'Perfilado - Chumbador + Barra', unit: 'metro' }
+        };
+
+        return map[type] || { name: type, unit: 'unidade', quantity: 0 };
+    },
+
+    calculateQuantity(item, material) {
+        if (item.type === 'DUTOS_ENTERRADOS') {
+            material.quantity += item.m_34 + item.m_1 + item.m_2 + (item.caixas || 0) * 0.5;
+        } else if (item.type.includes('CALHA') || item.type.includes('PERFILADO')) {
+            material.quantity += item.metros + (item.emendas || 0) * 0.3 + (item.apoios || 0) * 0.2;
+        } else {
+            material.quantity += item.metros + item.curvas * 0.5 + (item.conduletes || 0) * 0.1;
+        }
+
+        material.quantity = Math.round(material.quantity * 100) / 100;
+    },
+
+    showWelcome() {
+        DOM.welcomeState.classList.remove('hidden');
+        DOM.trechosList.classList.add('hidden');
+        DOM.resultsState.classList.add('hidden');
+    },
+
+    showResults() {
+        if (State.projectItems.length === 0) {
+            alert('Adicione trechos primeiro.');
             return;
         }
-    });
+        DOM.welcomeState.classList.add('hidden');
+        DOM.trechosList.classList.add('hidden');
+        DOM.resultsState.classList.remove('hidden');
+    },
 
-    return Object.values(container).map(item => ({
-        name:     item.name,
-        unit:     item.unit,
-        quantity: item.type === 'miudeza' ? roundMiudezas(item.quantity) : Math.ceil(item.quantity)
-    }));
-}
-
-function roundMiudezas(value) {
-    if (value === 0) return 0;
-    let r = Math.ceil(value * 1.1);
-    while (r % 5 !== 0) r++;
-    return r;
-}
-
-// ── Exports ───────────────────────────────────────────────
-function downloadCsv() {
-    const rows = consolidateMaterials();
-    if (!rows.length) { alert('Gere a lista antes de exportar.'); return; }
-    
-    let csv = ['DESCRIÇÃO;UNID;QUANTIDADE FINAL', ...rows.map(r => `${r.name};${r.unit};${r.quantity}`)].join('\n');
-    
-    // Captura as observações e adiciona no final do CSV
-    const obsText = projectObs.value.trim();
-    if (obsText) {
-        // Trocamos quebras de linha por espaço para não bugar o Excel
-        csv += `\n\nOBSERVAÇÕES;\n${obsText.replace(/\n/g, ' - ')}`;
+    backToTrechos() {
+        DOM.welcomeState.classList.add('hidden');
+        DOM.resultsState.classList.add('hidden');
+        DOM.trechosList.classList.remove('hidden');
     }
-    
-    const universalBOM = new Uint8Array([0xEF, 0xBB, 0xBF]);
-    
-    const blob = new Blob(
-        [universalBOM, csv],
-        { type: 'text/csv;charset=utf-8;' }
-    );
-    
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
-    link.download = 'lista_kts.csv';
-    link.click();
-}
+};
 
-function downloadPdf() {
-    const rows = consolidateMaterials();
-    if (!rows.length) { alert('Gere a lista antes de exportar.'); return; }
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF({ unit: 'pt', format: 'a4' });
-    doc.setFontSize(14);
-    doc.setTextColor('#1e3a5f');
-    doc.text('KTS Tecnologia & Inovação — Lista de Materiais', 40, 60);
-    doc.setFontSize(10);
-    doc.setTextColor('#6b7280');
-    doc.text(`Gerado em: ${new Date().toLocaleString()}`, 40, 80);
-
-    let y = 110;
-    doc.setFontSize(10);
-    doc.setTextColor('#1f2937');
-    doc.text('DESCRIÇÃO', 40, y);
-    doc.text('UNID',      390, y);
-    doc.text('QUANTIDADE', 470, y);
-    y += 18;
-
-    rows.forEach(row => {
-        if (y > 740) { doc.addPage(); y = 60; }
-        doc.text(row.name,         40,  y);
-        doc.text(row.unit,         390, y);
-        doc.text(String(row.quantity), 470, y);
-        y += 18;
-    });
-
-    // Imprime as observações no PDF, se houver
-    const obsText = projectObs.value.trim();
-    if (obsText) {
-        y += 20;
-        if (y > 740) { doc.addPage(); y = 60; }
-        doc.setFontSize(10);
-        doc.setTextColor('#1f2937');
-        doc.setFont(undefined, 'bold');
-        doc.text('OBSERVAÇÕES:', 40, y);
-        y += 15;
-        doc.setFont(undefined, 'normal');
-        doc.setTextColor('#6b7280');
-        const splitObs = doc.splitTextToSize(obsText, 500); // Quebra o texto se for muito longo
-        doc.text(splitObs, 40, y);
-    }
-
-    doc.save('lista_kts.pdf');
-}
-
-// ── Reset ─────────────────────────────────────────────────
-function resetProject() {
-    if (!projectItems.length) return;
-    if (!confirm('Tem certeza que deseja limpar todos os trechos?')) return;
-    projectItems.length = 0;
-    projectObs.value = ''; // Limpa as observações também
-    updateProjectCount();
-    welcomeState.classList.remove('hidden');
-    trechosList.classList.add('hidden');
-    resultsState.classList.add('hidden');
-}
-
-// ── Event listeners ───────────────────────────────────────
-addItemBtn.addEventListener('click',      addItemToProject);
-showResultsBtn.addEventListener('click',   openResults);
-openResultsBtn.addEventListener('click',   openResults);
-resetProjectBtn.addEventListener('click',  resetProject);
-sendWhatsappBtn.addEventListener('click',  sendToWhatsapp);
+// ============================================================
+// WHATSAPP INTEGRATION
+// ============================================================
 
 async function sendToWhatsapp() {
-
-    const rows = consolidateMaterials();
+    const rows = Project.consolidateMaterials();
 
     if (!rows.length) {
         alert('Gere a lista antes de enviar.');
@@ -509,30 +444,25 @@ async function sendToWhatsapp() {
     }
 
     let texto = '*KTS - Lista de Materiais*%0A%0A';
-
     rows.forEach(row => {
         texto += `• ${row.name} | ${row.unit} | ${row.quantity}%0A`;
     });
 
-    // Observações
-    const obsText = projectObs.value.trim();
-
+    const obsText = DOM.projectObs.value.trim();
     if (obsText) {
-        texto += `\n*OBSERVAÇÕES*\n${obsText}`;
+        texto += `%0A*OBSERVAÇÕES*%0A${obsText}`;
     }
 
     const whatsappUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(texto)}`;
 
-    // MOBILE SHARE (quando suportado)
+    // Mobile Share
     if (/Android|iPhone|iPad|iPod/i.test(navigator.userAgent)) {
-
         const csvContent = [
             'DESCRIÇÃO;UNID;QUANTIDADE FINAL',
             ...rows.map(row => `${row.name};${row.unit};${row.quantity}`)
         ].join('\n');
 
         const universalBOM = new Uint8Array([0xEF, 0xBB, 0xBF]);
-
         const file = new File(
             [universalBOM, csvContent],
             `KTS_${Date.now()}.csv`,
@@ -559,152 +489,208 @@ async function sendToWhatsapp() {
     }
 }
 
-// ── Login ─────────────────────────────────────────────────
-const users = [
-    { user: 'Nikolas', pass: '4x%t7kADM', role: 'admin' },
-    { user: 'Goes',    pass: 'senha123', role: 'admin' },
-    { user: 'maria',   pass: 'kts2026', role: 'user' }
-];
+// ============================================================
+// AUTHENTICATION
+// ============================================================
 
-let currentUser = null;
-let currentRole = null;
+const Auth = {
+    login() {
+        const user = DOM.loginUsername.value.trim();
+        const pass = DOM.loginPassword.value.trim();
+        const match = State.users.find(u => u.user === user && u.pass === pass);
 
-function handleLogin() {
-    const user = loginUsername.value.trim();
-    const pass = loginPassword.value.trim();
-    const match = users.find(account => account.user === user && account.pass === pass);
-
-    if (!match) {
-        loginMessage.textContent = 'Usuário ou senha incorretos.';
-        loginMessage.classList.remove('hidden');
-        loginPassword.value = '';
-        loginPassword.focus();
-        return;
-    }
-
-    currentUser = match.user;
-    currentRole = match.role;
-    loginOverlay.classList.add('hidden');
-    document.body.classList.remove('locked');
-    loginMessage.classList.add('hidden');
-    loginUsername.value = '';
-    loginPassword.value = '';
-    renderCatalog();
-    updateProjectCount();
-    updateUserBadge();
-    applyRolePermissions();
-    renderAdminPanel();
-}
-
-function updateUserBadge() {
-    userBar.classList.remove('hidden');
-    userNameLabel.textContent = currentUser;
-    userRoleLabel.textContent = currentRole === 'admin' ? 'ADMIN' : 'Usuário comum';
-}
-
-function applyRolePermissions() {
-    if (currentRole === 'admin') {
-        resetProjectBtn.disabled = false;
-        resetProjectBtn.title = '';
-    } else {
-        resetProjectBtn.disabled = true;
-        resetProjectBtn.title = 'Apenas administradores podem limpar o projeto';
-    }
-}
-
-function renderAdminPanel() {
-    if (currentRole === 'admin') {
-        adminPanel.classList.remove('hidden');
-        renderUserList();
-        return;
-    }
-
-    adminPanel.classList.add('hidden');
-}
-
-function renderUserList() {
-    adminUserList.innerHTML = '';
-    users.forEach((account, index) => {
-        const card = document.createElement('div');
-        card.className = 'admin-user-card';
-        card.innerHTML = `
-            <div class="admin-user-info">
-                <strong>${account.user}</strong>
-                <span>${account.role === 'admin' ? 'Administrador' : 'Usuário comum'}</span>
-            </div>
-            <div class="admin-user-actions">
-                <button type="button" class="button ghost-sm" data-index="${index}">Remover</button>
-            </div>
-        `;
-
-        const removeButton = card.querySelector('button');
-        if (account.user === currentUser) {
-            removeButton.disabled = true;
-            removeButton.title = 'Não é possível remover o usuário logado.';
+        if (!match) {
+            DOM.loginMessage.classList.remove('hidden');
+            DOM.loginPassword.value = '';
+            DOM.loginPassword.focus();
+            return;
         }
 
-        removeButton.addEventListener('click', () => removeAdminUser(index));
-        adminUserList.appendChild(card);
-    });
-}
+        State.setUser(match.user, match.role);
+        this.finishLogin();
+    },
 
-function showAddUserForm() {
-    adminFormMessage.classList.add('hidden');
-    adminFormUsername.value = '';
-    adminFormPassword.value = '';
-    adminFormRole.value = 'user';
-    adminUserForm.classList.remove('hidden');
-}
+    finishLogin() {
+        DOM.loginOverlay.classList.add('hidden');
+        document.body.classList.remove('locked');
+        DOM.loginMessage.classList.add('hidden');
+        DOM.loginUsername.value = '';
+        DOM.loginPassword.value = '';
 
-function hideAdminForm() {
-    adminFormMessage.classList.add('hidden');
-    adminUserForm.classList.add('hidden');
-}
+        Catalog.render();
+        Project.updateUI();
+        this.updateUserBadge();
+        this.applyPermissions();
+        Admin.render();
+    },
 
-function saveAdminUser() {
-    const username = adminFormUsername.value.trim();
-    const password = adminFormPassword.value.trim();
-    const role = adminFormRole.value;
+    updateUserBadge() {
+        DOM.userBar.classList.remove('hidden');
+        DOM.userNameLabel.textContent = State.currentUser;
+        DOM.userRoleLabel.textContent = State.currentRole === 'admin' ? 'ADMIN' : 'Usuário comum';
+    },
 
-    if (!username || !password) {
-        adminFormMessage.textContent = 'Preencha usuário e senha.';
-        adminFormMessage.classList.remove('hidden');
-        return;
+    applyPermissions() {
+        const isAdmin = State.currentRole === 'admin';
+        DOM.resetProjectBtn.disabled = !isAdmin;
+        DOM.resetProjectBtn.title = isAdmin ? '' : 'Apenas administradores podem limpar o projeto';
     }
+};
 
-    if (users.some(account => account.user.toLowerCase() === username.toLowerCase())) {
-        adminFormMessage.textContent = 'Já existe um usuário com esse nome.';
-        adminFormMessage.classList.remove('hidden');
-        return;
+// ============================================================
+// CATALOG RENDERING
+// ============================================================
+
+const Catalog = {
+    render() {
+        DOM.categoryList.innerHTML = '';
+        CATALOG.forEach(item => {
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'category-card';
+            btn.textContent = item.label;
+            btn.addEventListener('click', () => Modal.open(item));
+            DOM.categoryList.appendChild(btn);
+        });
     }
+};
 
-    users.push({ user: username, pass: password, role });
-    renderUserList();
-    hideAdminForm();
-}
+// ============================================================
+// ADMIN MANAGEMENT
+// ============================================================
 
-function removeAdminUser(index) {
-    const account = users[index];
-    if (!account || account.user === currentUser) return;
-    if (!confirm(`Remover o usuário ${account.user}?`)) return;
-    users.splice(index, 1);
-    renderUserList();
-}
+const Admin = {
+    render() {
+        if (State.currentRole !== 'admin') {
+            DOM.adminPanel.classList.add('hidden');
+            return;
+        }
 
-adminAddUserBtn.addEventListener('click', showAddUserForm);
-adminFormSave.addEventListener('click', saveAdminUser);
-adminFormCancel.addEventListener('click', hideAdminForm);
+        DOM.adminPanel.classList.remove('hidden');
+        this.renderUserList();
+    },
 
-loginSubmit.addEventListener('click', handleLogin);
-loginPassword.addEventListener('keydown', event => {
-    if (event.key === 'Enter') handleLogin();
+    renderUserList() {
+        DOM.adminUserList.innerHTML = '';
+
+        State.users.forEach((user, index) => {
+            const card = document.createElement('div');
+            card.className = 'admin-user-card';
+
+            const info = document.createElement('div');
+            info.className = 'admin-user-info';
+            info.innerHTML = `
+                <strong>${user.user}</strong>
+                <span>${user.role === 'admin' ? 'Administrador' : 'Usuário comum'}</span>
+            `;
+
+            const actions = document.createElement('div');
+            const removeBtn = document.createElement('button');
+            removeBtn.className = 'btn btn--ghost btn--sm';
+            removeBtn.textContent = 'Remover';
+
+            if (user.user === State.currentUser) {
+                removeBtn.disabled = true;
+                removeBtn.title = 'Não é possível remover o usuário logado.';
+            }
+
+            removeBtn.addEventListener('click', () => this.removeUser(index));
+
+            actions.appendChild(removeBtn);
+            card.appendChild(info);
+            card.appendChild(actions);
+            DOM.adminUserList.appendChild(card);
+        });
+    },
+
+    showForm() {
+        DOM.adminFormMessage.classList.add('hidden');
+        DOM.adminFormUsername.value = '';
+        DOM.adminFormPassword.value = '';
+        DOM.adminFormRole.value = 'user';
+        DOM.adminUserForm.classList.remove('hidden');
+    },
+
+    hideForm() {
+        DOM.adminFormMessage.classList.add('hidden');
+        DOM.adminUserForm.classList.add('hidden');
+    },
+
+    saveUser() {
+        const username = DOM.adminFormUsername.value.trim();
+        const password = DOM.adminFormPassword.value.trim();
+        const role = DOM.adminFormRole.value;
+
+        if (!username || !password) {
+            this.showMessage('Preencha usuário e senha.');
+            return;
+        }
+
+        if (State.users.some(u => u.user.toLowerCase() === username.toLowerCase())) {
+            this.showMessage('Já existe um usuário com esse nome.');
+            return;
+        }
+
+        State.addUser({ user: username, pass: password, role });
+        this.renderUserList();
+        this.hideForm();
+    },
+
+    removeUser(index) {
+        const user = State.users[index];
+        if (!user || user.user === State.currentUser) return;
+
+        if (!confirm(`Remover o usuário ${user.user}?`)) return;
+
+        State.removeUser(index);
+        this.renderUserList();
+    },
+
+    showMessage(msg) {
+        DOM.adminFormMessage.textContent = msg;
+        DOM.adminFormMessage.classList.remove('hidden');
+    }
+};
+
+// ============================================================
+// EVENT LISTENERS
+// ============================================================
+
+// Modal
+DOM.modalClose.addEventListener('click', () => Modal.close());
+DOM.modalOverlay.addEventListener('click', (e) => {
+    if (e.target === DOM.modalOverlay) Modal.close();
+});
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') Modal.close();
 });
 
-loginUsername.addEventListener('keydown', event => {
-    if (event.key === 'Enter') loginPassword.focus();
+// Project
+DOM.addItemBtn.addEventListener('click', () => Project.addItem());
+DOM.showResultsBtn.addEventListener('click', () => Project.showResults());
+DOM.openResultsBtn.addEventListener('click', () => Project.showResults());
+DOM.backTrechosBtn.addEventListener('click', () => Project.backToTrechos());
+DOM.resetProjectBtn.addEventListener('click', () => Project.reset());
+DOM.sendWhatsappBtn.addEventListener('click', sendToWhatsapp);
+
+// Auth
+DOM.loginSubmit.addEventListener('click', () => Auth.login());
+DOM.loginPassword.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') Auth.login();
+});
+DOM.loginUsername.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') DOM.loginPassword.focus();
 });
 
-// ── Init ──────────────────────────────────────────────────
+// Admin
+DOM.adminAddUserBtn.addEventListener('click', () => Admin.showForm());
+DOM.adminFormSave.addEventListener('click', () => Admin.saveUser());
+DOM.adminFormCancel.addEventListener('click', () => Admin.hideForm());
+
+// ============================================================
+// INITIALIZATION
+// ============================================================
+
 document.body.classList.add('locked');
-renderCatalog();
-updateProjectCount();
+Catalog.render();
+Project.updateUI();
