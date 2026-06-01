@@ -13,11 +13,33 @@ const State = {
     selectedType: null,
     selectedItemLabel: '',
     projectItems: [],
+    storageKeyUsers: 'kts_users',
     users: [
         { user: 'Nikolas', pass: '4x%t7kADM', role: 'admin' },
         { user: 'Goes', pass: 'senha123', role: 'admin' },
         { user: 'maria', pass: 'kts2026', role: 'user' }
     ],
+
+    loadUsers() {
+        try {
+            const saved = localStorage.getItem(this.storageKeyUsers);
+            if (!saved) return;
+            const parsed = JSON.parse(saved);
+            if (Array.isArray(parsed) && parsed.length) {
+                this.users = parsed;
+            }
+        } catch (err) {
+            console.warn('Não foi possível carregar usuários salvos:', err);
+        }
+    },
+
+    saveUsers() {
+        try {
+            localStorage.setItem(this.storageKeyUsers, JSON.stringify(this.users));
+        } catch (err) {
+            console.warn('Não foi possível salvar usuários:', err);
+        }
+    },
 
     setUser(user, role) {
         this.currentUser = user;
@@ -43,10 +65,12 @@ const State = {
 
     addUser(user) {
         this.users.push(user);
+        this.saveUsers();
     },
 
     removeUser(index) {
         this.users.splice(index, 1);
+        this.saveUsers();
     }
 };
 
@@ -692,5 +716,6 @@ DOM.adminFormCancel.addEventListener('click', () => Admin.hideForm());
 // ============================================================
 
 document.body.classList.add('locked');
+State.loadUsers();
 Catalog.render();
 Project.updateUI();
