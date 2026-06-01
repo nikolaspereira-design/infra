@@ -513,17 +513,17 @@ async function sendToWhatsapp() {
     const obsText = projectObs.value.trim();
 
     if (obsText) {
-        texto += `%0A*OBSERVAÇÕES*%0A${obsText}`;
+        texto += `\n*OBSERVAÇÕES*\n${obsText}`;
     }
 
-    // MOBILE
+    const whatsappUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(texto)}`;
+
+    // MOBILE SHARE (quando suportado)
     if (/Android|iPhone|iPad|iPod/i.test(navigator.userAgent)) {
 
-        let csvContent = [
+        const csvContent = [
             'DESCRIÇÃO;UNID;QUANTIDADE FINAL',
-            ...rows.map(row =>
-                `${row.name};${row.unit};${row.quantity}`
-            )
+            ...rows.map(row => `${row.name};${row.unit};${row.quantity}`)
         ].join('\n');
 
         const universalBOM = new Uint8Array([0xEF, 0xBB, 0xBF]);
@@ -535,28 +535,23 @@ async function sendToWhatsapp() {
         );
 
         if (navigator.canShare && navigator.canShare({ files: [file] })) {
-
             try {
-
                 await navigator.share({
                     title: 'KTS Lista de Materiais',
-                    text: 'Segue lista de materiais.',
+                    text: texto,
                     files: [file]
                 });
-
                 return;
-
             } catch (err) {
-                console.log(err);
+                console.log('Share falhou, fallback para WhatsApp:', err);
             }
         }
     }
 
-    // PC / FALLBACK
-    window.open(
-        `https://wa.me/?text=${texto}`,
-        '_blank'
-    );
+    const opened = window.open(whatsappUrl, '_blank');
+    if (!opened) {
+        window.location.href = whatsappUrl;
+    }
 }
 
 // ── Login ─────────────────────────────────────────────────
