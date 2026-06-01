@@ -27,6 +27,17 @@ body {
 }
 
 /* ===== TOPBAR ===== */
+.site-update-banner {
+    margin: 0 28px 18px;
+    padding: 14px 18px;
+    border-radius: 14px;
+    background: #fff8e1;
+    color: #664d03;
+    font-weight: 700;
+    border: 1px solid #f5d184;
+    box-shadow: 0 10px 24px rgba(218, 165, 32, 0.08);
+}
+
 .topbar {
     width: 100%;
     background: transparent;
