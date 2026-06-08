@@ -63,6 +63,144 @@ const State = {
         this.projectItems = [];
     },
 
+    materialCatalog: {},
+    materialCatalogSource: 'materiais.csv',
+
+    normalizeCatalogKey(text) {
+        return String(text || '')
+            .trim()
+            .replace(/\s+/g, ' ')
+            .toLowerCase();
+    },
+
+    parseCsv(text) {
+        const rows = [];
+        let current = '';
+        let inQuotes = false;
+        let row = [];
+
+        for (let i = 0; i < text.length; i++) {
+            const ch = text[i];
+
+            if (ch === '"') {
+                if (inQuotes && text[i + 1] === '"') {
+                    current += '"';
+                    i += 1;
+                } else {
+                    inQuotes = !inQuotes;
+                }
+            } else if (ch === ';' && !inQuotes) {
+                row.push(current);
+                current = '';
+            } else if ((ch === '\n' || ch === '\r') && !inQuotes) {
+                if (ch === '\r' && text[i + 1] === '\n') {
+                    i += 1;
+                }
+                row.push(current);
+                if (row.length > 1 || current.length > 0) {
+                    rows.push(row);
+                }
+                row = [];
+                current = '';
+            } else {
+                current += ch;
+            }
+        }
+
+        if (current.length > 0 || row.length > 0) {
+            row.push(current);
+            rows.push(row);
+        }
+
+        return rows;
+    },
+
+    buildMaterialCatalog(records) {
+        const catalog = {};
+        records.forEach(record => {
+            const description = String(record.descricao || record.descrição || record.description || '').trim();
+            if (!description) return;
+            const unit = String(record.unidade || record.unit || record.ud || record.unidad || 'PEÇA').trim() || 'PEÇA';
+            const key = this.normalizeCatalogKey(description);
+            if (!catalog[key]) {
+                catalog[key] = { name: description, unit };
+            }
+        });
+        return catalog;
+    },
+
+    normalizeCsvHeader(header) {
+        return header
+            .trim()
+            .toLowerCase()
+            .replace(/ç/g, 'c')
+            .replace(/ã/g, 'a')
+            .replace(/á/g, 'a')
+            .replace(/é/g, 'e')
+            .replace(/í/g, 'i')
+            .replace(/ó/g, 'o')
+            .replace(/ú/g, 'u')
+            .replace(/[^a-z0-9]+/g, '_')
+            .replace(/^_+|_+$/g, '');
+    },
+
+    loadMaterialCatalog() {
+        return fetch(this.materialCatalogSource)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`Falha ao carregar ${this.materialCatalogSource}: ${response.status}`);
+                }
+                return response.text();
+            })
+            .then(rawText => {
+                const rows = this.parseCsv(rawText);
+                if (!rows.length) {
+                    throw new Error('CSV vazio ou inválido');
+                }
+
+                let headers = null;
+                let startIndex = 0;
+                const firstRow = rows[0].map(cell => String(cell || '').trim().toLowerCase());
+                const hasHeader = firstRow.some(value => /descricao|descrição|descricao/i.test(value))
+                    || firstRow.some(value => /unidade|unidad|unit|ud/i.test(value));
+
+                if (hasHeader) {
+                    headers = firstRow.map(value => this.normalizeCsvHeader(value));
+                    startIndex = 1;
+                }
+
+                const records = [];
+                for (let i = startIndex; i < rows.length; i += 1) {
+                    const row = rows[i];
+                    if (!row || row.every(cell => String(cell || '').trim() === '')) continue;
+                    if (headers) {
+                        const record = {};
+                        headers.forEach((header, index) => {
+                            record[header] = String(row[index] || '').trim();
+                        });
+                        records.push(record);
+                    } else {
+                        records.push({
+                            descricao: String(row[0] || '').trim(),
+                            unidade: String(row[1] || '').trim()
+                        });
+                    }
+                }
+
+                this.materialCatalog = this.buildMaterialCatalog(records);
+                console.info(`Catalogo de materiais carregado: ${Object.keys(this.materialCatalog).length} itens`);
+            })
+            .catch(err => {
+                console.warn('Não foi possível carregar o catálogo de materiais do CSV:', err);
+                this.materialCatalog = {};
+            });
+    },
+
+    getMaterialDefinition(name) {
+        if (!name) return null;
+        return this.materialCatalog[this.normalizeCatalogKey(name)] || null;
+    },
+
     addUser(user) {
         this.users.push(user);
         this.saveUsers();
@@ -188,6 +326,12 @@ function getFieldsForType(type) {
     }
 
     return [...common, { name: 'conduletes', label: 'Conduletes Adicionais', default: '0' }];
+}
+
+function getFieldLabel(type, key) {
+    const fields = getFieldsForType(type);
+    const field = fields.find(f => f.name === key);
+    return field ? field.label : key;
 }
 
 // ============================================================
@@ -341,7 +485,7 @@ const Project = {
 
             const details = Object.entries(item)
                 .filter(([key]) => !['type', 'label'].includes(key))
-                .map(([key, value]) => `${key}: ${value}`)
+                .map(([key, value]) => `${getFieldLabel(item.type, key)}: ${value}`)
                 .join(' • ');
 
             const detail = document.createElement('div');
@@ -381,55 +525,117 @@ const Project = {
     consolidateMaterials() {
         const materials = {};
 
-        State.projectItems.forEach(item => {
-            const key = `${item.type}`;
-            const data = this.getMaterialData(item.type);
+        const add = (name, qty, unit = 'PEÇA', type = 'principal') => {
+            if (!qty || qty <= 0) return;
+            const def = State.getMaterialDefinition(name);
+            const resolvedUnit = def && def.unit ? def.unit : unit;
+            if (!materials[name]) {
+                materials[name] = { name, unit: resolvedUnit, quantity: 0, type };
+            }
+            materials[name].quantity += qty;
+        };
 
-            if (!materials[key]) {
-                materials[key] = { ...data, quantity: 0 };
+        const roundMiudeza = qty => {
+            if (!qty || qty <= 0) return 0;
+            let sup = Math.ceil(qty * 1.10);
+            while (sup % 5 !== 0) sup += 1;
+            return sup;
+        };
+
+        State.projectItems.forEach(item => {
+            if (item.type === 'DUTOS_ENTERRADOS') {
+                add('DUTO CORRUGADO PEAD 3/4"', item.m_34 || 0, 'METRO');
+                add('DUTO CORRUGADO PEAD 1"', item.m_1 || 0, 'METRO');
+                add('DUTO CORRUGADO PEAD 2"', item.m_2 || 0, 'METRO');
+                const caixas = item.caixas || 0;
+                add('CAIXA DE PASSAGEM CONCRETO 50X50', caixas);
+                add('TAMPA PARA CAIXA DE INSPEÇÃO COM ALÇA', caixas);
+                return;
             }
 
-            this.calculateQuantity(item, materials[key]);
+            const metros = item.metros || 0;
+            const curvas = item.curvas || 0;
+            const conduletes = item.conduletes || 0;
+            const emendas = item.emendas || 0;
+            const apoios = item.apoios || 0;
+            const altura = item.altura || (item.type.includes('CABO') ? 4 : 0.5);
+
+            if (item.type.includes('ELETRODUTO')) {
+                const pol = item.type.includes('34') ? '3/4"' : item.type.includes('1_') ? '1"' : '2"';
+                add(`ELETRODUTO GALVANIZADO LEVE ${pol} (BARRA 3m)`, Math.ceil(metros / 3));
+                const abr = Math.ceil(metros / 1.5);
+                add(`ABRAÇADEIRA ${pol} COM CUNHA`, abr);
+                const cond = 2 + conduletes;
+                add(`CONDULETE MÚLTIPLO X ${pol}`, cond);
+                if (curvas > 0) add(`CURVA 90º ELETRODUTO ${pol}`, curvas);
+
+                const fix = abr + cond * 2;
+                if (item.type.includes('CONCRETO')) {
+                    add('BUCHA FISCHER SX 8MM', fix, 'PEÇA', 'miudeza');
+                    add('PARAFUSO PHILLIPS PANELA', fix, 'PEÇA', 'miudeza');
+                } else if (item.type.includes('DRYWALL')) {
+                    add('BUCHA FLY 8MM', fix, 'PEÇA', 'miudeza');
+                    add('PARAFUSO PHILLIPS PANELA', fix, 'PEÇA', 'miudeza');
+                } else if (item.type.includes('METALICA')) {
+                    add('PARAFUSO AUTOBROCANTE 5/16', fix, 'PEÇA', 'miudeza');
+                }
+                return;
+            }
+
+            if (item.type.includes('CALHA') || item.type.includes('PERFILADO')) {
+                const isCalha = item.type.includes('CALHA');
+                const nomeBase = isCalha ? 'ELETROCALHA 100X50 (BARRA 3m)' : 'PERFILADO 38X38 (BARRA 6m)';
+                const divisor = isCalha ? 3 : 6;
+                const barras = Math.ceil(metros / divisor);
+                add(nomeBase, barras);
+
+                const totalEmendas = barras + emendas;
+                if (isCalha) {
+                    add('EMENDA INTERNA U 100X50', totalEmendas);
+                } else {
+                    add('EMENDA INTERNA PERFILADO 38X38', totalEmendas);
+                }
+
+                const totalApoios = Math.ceil(metros / 1.5) + apoios;
+                let pfBase = totalEmendas * 8;
+
+                if (item.type.includes('MF')) {
+                    add('MÃO FRANCESA DE PERFILADO 30 CM', totalApoios);
+                    add('BUCHA FISCHER SX 8MM', totalApoios * 4, 'PEÇA', 'miudeza');
+                    add('PARAFUSO PHILLIPS PANELA', totalApoios * 4, 'PEÇA', 'miudeza');
+                    pfBase += totalApoios * 2;
+                } else if (item.type.includes('CABO')) {
+                    add('SUPORTE SUSPENSO POR CABO DE AÇO', totalApoios);
+                    add('CABO DE AÇO 1/8', totalApoios * altura, 'METRO');
+                    add('PRENSA CABO DE ALUMINIO 1/8', totalApoios * 6);
+                } else if (item.type.includes('IGREJINHA') || item.type.includes('BARRA')) {
+                    if (isCalha) {
+                        add('SUPORTE BALANÇO (IGREJINHA)', totalApoios);
+                    } else {
+                        add('GRAMPO C COM BALANCIM', totalApoios);
+                    }
+                    add('CHUMBADOR CBA 3/8', totalApoios);
+                    add('BARRA ROSCADA ZINCADA 3/8 X 3000', (totalApoios * altura) / 3);
+                    add('PORCA SEXTAVADA 3/8', totalApoios * 4, 'PEÇA', 'miudeza');
+                    add('ARRUELA LISA 3/8', totalApoios * 4, 'PEÇA', 'miudeza');
+                } else if (item.type.includes('GRAMPO')) {
+                    add('GRAMPO C COM BALANCIM', totalApoios);
+                }
+
+                add('PARAFUSO (LENTILHA) 1/4 x 3/4', pfBase, 'PEÇA', 'miudeza');
+                add('PORCA SEXTAVADA 1/4', pfBase, 'PEÇA', 'miudeza');
+                add('ARRUELA LISA 1/4', pfBase, 'PEÇA', 'miudeza');
+                return;
+            }
         });
 
         return Object.values(materials)
+            .map(item => ({
+                name: item.name,
+                unit: item.unit,
+                quantity: item.type === 'miudeza' ? roundMiudeza(item.quantity) : Math.ceil(item.quantity)
+            }))
             .sort((a, b) => a.name.localeCompare(b.name));
-    },
-
-    getMaterialData(type) {
-        const map = {
-            'ELETRODUTO_34_CONCRETO': { name: 'Eletroduto 3/4" - Concreto', unit: 'metro' },
-            'ELETRODUTO_34_DRYWALL': { name: 'Eletroduto 3/4" - Drywall', unit: 'metro' },
-            'ELETRODUTO_34_METALICA': { name: 'Eletroduto 3/4" - Metálica', unit: 'metro' },
-            'ELETRODUTO_1_CONCRETO': { name: 'Eletroduto 1" - Concreto', unit: 'metro' },
-            'ELETRODUTO_1_DRYWALL': { name: 'Eletroduto 1" - Drywall', unit: 'metro' },
-            'ELETRODUTO_1_METALICA': { name: 'Eletroduto 1" - Metálica', unit: 'metro' },
-            'ELETRODUTO_2_CONCRETO': { name: 'Eletroduto 2" - Concreto', unit: 'metro' },
-            'ELETRODUTO_2_DRYWALL': { name: 'Eletroduto 2" - Drywall', unit: 'metro' },
-            'ELETRODUTO_2_METALICA': { name: 'Eletroduto 2" - Metálica', unit: 'metro' },
-            'DUTOS_ENTERRADOS': { name: 'Dutos Enterrados', unit: 'metro' },
-            'CALHA_MF_CONCRETO': { name: 'Eletrocalha - Mão Francesa', unit: 'metro' },
-            'CALHA_CABO': { name: 'Eletrocalha - Suspensa Cabo de Aço', unit: 'metro' },
-            'CALHA_IGREJINHA': { name: 'Eletrocalha - Igrejinha + Barra', unit: 'metro' },
-            'CALHA_GRAMPO': { name: 'Eletrocalha - Grampo C', unit: 'metro' },
-            'PERFILADO_MF_CONCRETO': { name: 'Perfilado - Mão Francesa', unit: 'metro' },
-            'PERFILADO_GRAMPO': { name: 'Perfilado - Grampo C + Balancim', unit: 'metro' },
-            'PERFILADO_BARRA': { name: 'Perfilado - Chumbador + Barra', unit: 'metro' }
-        };
-
-        return map[type] || { name: type, unit: 'unidade', quantity: 0 };
-    },
-
-    calculateQuantity(item, material) {
-        if (item.type === 'DUTOS_ENTERRADOS') {
-            material.quantity += item.m_34 + item.m_1 + item.m_2 + (item.caixas || 0) * 0.5;
-        } else if (item.type.includes('CALHA') || item.type.includes('PERFILADO')) {
-            material.quantity += item.metros + (item.emendas || 0) * 0.3 + (item.apoios || 0) * 0.2;
-        } else {
-            material.quantity += item.metros + item.curvas * 0.5 + (item.conduletes || 0) * 0.1;
-        }
-
-        material.quantity = Math.round(material.quantity * 100) / 100;
     },
 
     showWelcome() {
@@ -467,14 +673,26 @@ async function sendToWhatsapp() {
         return;
     }
 
-    let texto = '*KTS - Lista de Materiais*%0A%0A';
+    let texto = '*KTS - Lista de Materiais*\n\n';
+    texto += '*Trechos adicionados:*\n';
+
+    State.projectItems.forEach((item, index) => {
+        texto += `${index + 1}. ${item.label}\n`;
+        Object.entries(item)
+            .filter(([key]) => !['type', 'label'].includes(key))
+            .forEach(([key, value]) => {
+                texto += `   - ${getFieldLabel(item.type, key)}: ${value}\n`;
+            });
+    });
+
+    texto += '\n*Totais consolidados:*\n';
     rows.forEach(row => {
-        texto += `• ${row.name} | ${row.unit} | ${row.quantity}%0A`;
+        texto += `• ${row.name} | ${row.unit} | ${row.quantity}\n`;
     });
 
     const obsText = DOM.projectObs.value.trim();
     if (obsText) {
-        texto += `%0A*OBSERVAÇÕES*%0A${obsText}`;
+        texto += `\n*OBSERVAÇÕES*\n${obsText}`;
     }
 
     const whatsappUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(texto)}`;
@@ -715,7 +933,12 @@ DOM.adminFormCancel.addEventListener('click', () => Admin.hideForm());
 // INITIALIZATION
 // ============================================================
 
-document.body.classList.add('locked');
-State.loadUsers();
-Catalog.render();
-Project.updateUI();
+async function initializeApp() {
+    document.body.classList.add('locked');
+    State.loadUsers();
+    await State.loadMaterialCatalog();
+    Catalog.render();
+    Project.updateUI();
+}
+
+initializeApp();
