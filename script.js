@@ -193,6 +193,14 @@ const State = {
             .catch(err => {
                 console.warn('Não foi possível carregar o catálogo de materiais do CSV:', err);
                 this.materialCatalog = {};
+                if (DOM && DOM.csvWarningBanner) {
+                    DOM.csvWarningBanner.textContent =
+                        'Atenção: não foi possível carregar o catálogo de materiais do CSV. ' +
+                        'Se estiver abrindo o arquivo localmente (file://), execute um servidor HTTP ou publique o app.';
+                    DOM.csvWarningBanner.classList.remove('hidden');
+                } else {
+                    alert('Atenção: não foi possível carregar o catálogo de materiais do CSV. Por favor abra a aplicação via servidor HTTP.');
+                }
             });
     },
 
@@ -244,6 +252,7 @@ const DOM = {
     resultTableBody: document.getElementById('result-table-body'),
     sendWhatsappBtn: document.getElementById('send-whatsapp-btn'),
     projectObs: document.getElementById('project-obs'),
+    csvWarningBanner: document.getElementById('csv-warning-banner'),
 
     // Modal
     modalOverlay: document.getElementById('modal-overlay'),
